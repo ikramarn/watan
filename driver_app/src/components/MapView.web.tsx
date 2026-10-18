@@ -19,14 +19,14 @@ interface Props {
 
 const ICON_MAP: Record<MapMarker['kind'], { name: string; color: string; label: string }> = {
   self: { name: 'radio-button-on', color: '#3B82F6', label: 'You' },
-  pickup: { name: 'location', color: '#22C55E', label: 'Pickup' },
+  pickup: { name: 'location', color: '#10B981', label: 'Pickup' },
   destination: { name: 'flag', color: '#EF4444', label: 'Destination' },
-  driver: { name: 'car-sport', color: '#FACC15', label: 'Driver' },
-  car: { name: 'car-sport', color: '#FACC15', label: 'Vehicle' },
+  driver: { name: 'car-sport', color: '#10B981', label: 'Driver' },
+  car: { name: 'car-sport', color: '#10B981', label: 'Vehicle' },
 };
 
 export default function MapView({ center, markers = [], theme, height = '100%', showRoute }: Props) {
-  const isDark = theme.bg === '#000' || theme.bg === '#0a0a0a' || theme.bg === '#18181B' || theme.bg === '#0D1513';
+  const isDark = theme.mode === 'dark' || theme.bg === '#0B0F19';
   // Google Maps standard roadmap tiles with Pakistan road network, chowks, and landmarks
   const tileLayerUrl = 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
 
@@ -35,7 +35,7 @@ export default function MapView({ center, markers = [], theme, height = '100%', 
       lat: m.lat,
       lng: m.lng,
       label: m.label || ICON_MAP[m.kind]?.label || '',
-      color: ICON_MAP[m.kind]?.color || '#006837',
+      color: ICON_MAP[m.kind]?.color || '#10B981',
       icon: m.kind,
     }))
   );

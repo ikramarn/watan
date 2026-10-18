@@ -320,7 +320,7 @@ export default function RideActive() {
         <View style={styles.simControlsCard}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Ionicons name="flash" size={14} color="#006837" />
+              <Ionicons name="flash" size={14} color="#10B981" />
               <Text style={styles.simControlTitle}>Interactive Test Control</Text>
             </View>
             <Text style={styles.simControlSub}>Step through trip</Text>
@@ -591,7 +591,7 @@ export default function RideActive() {
 
             <TouchableOpacity
               style={{
-                backgroundColor: '#006837',
+                backgroundColor: '#10B981',
                 height: 52,
                 borderRadius: 16,
                 alignItems: 'center',
@@ -657,15 +657,15 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   simControlsCard: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#A5D6A7',
+    borderColor: 'rgba(16, 185, 129, 0.25)',
     padding: 12,
     marginBottom: 16,
   },
-  simControlTitle: { fontSize: 12, fontWeight: '800', color: '#004D27' },
-  simControlSub: { fontSize: 10, color: '#2E7D32' },
+  simControlTitle: { fontSize: 12, fontWeight: '800', color: '#059669' },
+  simControlSub: { fontSize: 10, color: '#059669' },
   simButtonGroup: {
     flexDirection: 'row',
     gap: 8,
@@ -677,18 +677,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#C8E6C9',
+    borderColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   simBtnActive: {
-    backgroundColor: '#006837',
-    borderColor: '#004D27',
+    backgroundColor: '#10B981',
+    borderColor: '#059669',
   },
   simBtnText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#059669',
   },
   simBtnTextActive: {
     color: '#FFFFFF',

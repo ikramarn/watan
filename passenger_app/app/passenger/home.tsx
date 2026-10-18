@@ -536,7 +536,7 @@ export default function PassengerHome() {
                 <Text style={styles.bookingRouteName}>{dest.name}</Text>
               </View>
               <TouchableOpacity onPress={() => setDest(null)}>
-                <Text style={{ color: '#BA1A1A', fontSize: 12, fontWeight: 'bold' }}>Cancel</Text>
+                <Text style={{ color: '#EF4444', fontSize: 12, fontWeight: 'bold' }}>Cancel</Text>
               </TouchableOpacity>
             </View>
 
@@ -573,7 +573,7 @@ export default function PassengerHome() {
                 <Text style={styles.seatModalSubtitle}>Bay #2 | Reg: LES-19-4821 | Departs: 08:30 PM (or when 14/14 full)</Text>
               </View>
               <TouchableOpacity onPress={() => setSeatModalVisible(false)} style={{ padding: 4 }}>
-                <Ionicons name="close" size={24} color="#191C1A" />
+                <Ionicons name="close" size={24} color="#0F172A" />
               </TouchableOpacity>
             </View>
 
@@ -581,7 +581,7 @@ export default function PassengerHome() {
               // Confirmed Boarding QR Ticket Screen
               <View style={{ paddingVertical: 16, alignItems: 'center', gap: 12 }}>
                 <View style={styles.successIconBox}>
-                  <Ionicons name="checkmark-done" size={32} color="#006837" />
+                  <Ionicons name="checkmark-done" size={32} color="#10B981" />
                 </View>
                 <Text style={styles.ticketConfirmedTitle}>Seat Reserved Successfully!</Text>
                 <Text style={styles.ticketConfirmedSub}>سیٹ محفوظ کر لی گئی ہے</Text>
@@ -589,13 +589,13 @@ export default function PassengerHome() {
                 <View style={styles.qrTicketCard}>
                   <Text style={styles.ticketBarcodeText}>WATAN BOARDING PASS • {reservedTicket.code}</Text>
                   <View style={styles.mockQrBox}>
-                    <Ionicons name="qr-code" size={110} color="#004D27" />
+                    <Ionicons name="qr-code" size={110} color="#059669" />
                   </View>
                   <View style={{ width: '100%', gap: 4, marginTop: 8 }}>
                     <Text style={styles.ticketDetail}>Route: <Text style={{ fontWeight: '700' }}>{reservedTicket.route}</Text></Text>
-                    <Text style={styles.ticketDetail}>Seats: <Text style={{ color: '#006837', fontWeight: '700' }}>{reservedTicket.seats.join(', ')}</Text></Text>
+                    <Text style={styles.ticketDetail}>Seats: <Text style={{ color: '#10B981', fontWeight: '700' }}>{reservedTicket.seats.join(', ')}</Text></Text>
                     <Text style={styles.ticketDetail}>Total Fare: <Text style={{ fontWeight: '700' }}>Rs. {reservedTicket.fare}</Text></Text>
-                    <Text style={[styles.ticketDetail, { color: '#735C00', fontWeight: '700' }]}>Payment: {reservedTicket.mode}</Text>
+                    <Text style={[styles.ticketDetail, { color: '#B45309', fontWeight: '700' }]}>Payment: {reservedTicket.mode}</Text>
                   </View>
                   <Text style={styles.ticketInstruction}>
                     Show this QR code to the Adda Munshi at Bay #2 upon arrival to pay cash and board.
@@ -982,20 +982,20 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#BEC9BE',
+    borderColor: '#E2E8F0',
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 2,
   },
-  searchIconBox: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#E7E9E4', alignItems: 'center', justifyContent: 'center' },
-  searchInput: { flex: 1, fontSize: 14, color: '#191C1A', fontWeight: '500' },
+  searchIconBox: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
+  searchInput: { flex: 1, fontSize: 14, color: '#0F172A', fontWeight: '500' },
   sectionHeader: { paddingHorizontal: 16, marginBottom: 10 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#191C1A' },
-  sectionSub: { fontSize: 11, color: '#6F7A70', marginTop: 1 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
+  sectionSub: { fontSize: 11, color: '#64748B', marginTop: 1 },
   categoryCard: {
     width: 105,
     backgroundColor: '#FFFFFF',
@@ -1003,32 +1003,32 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#BEC9BE',
+    borderColor: '#E2E8F0',
   },
-  categoryCardSelected: { borderColor: '#006837', borderWidth: 2, backgroundColor: '#F3F4EF' },
-  catIconBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#EDEEEA', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  catTitle: { fontSize: 11, fontWeight: '600', color: '#191C1A', textAlign: 'center' },
-  catUrdu: { fontSize: 10, color: '#6F7A70', textAlign: 'center' },
-  catPrice: { fontSize: 10, fontWeight: '700', color: '#006837', marginTop: 4 },
+  categoryCardSelected: { borderColor: '#10B981', borderWidth: 2, backgroundColor: '#F8FAFC' },
+  catIconBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  catTitle: { fontSize: 11, fontWeight: '600', color: '#0F172A', textAlign: 'center' },
+  catUrdu: { fontSize: 10, color: '#64748B', textAlign: 'center' },
+  catPrice: { fontSize: 10, fontWeight: '700', color: '#10B981', marginTop: 4 },
   addaCard: {
     width: 260,
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#BEC9BE',
+    borderColor: '#E2E8F0',
     gap: 8,
   },
   addaHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  addaName: { fontSize: 13, fontWeight: '700', color: '#191C1A' },
-  addaUrdu: { fontSize: 11, color: '#735C00', fontWeight: '600' },
-  distanceChip: { backgroundColor: '#EDEEEA', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  distanceText: { fontSize: 10, color: '#3F4940', fontWeight: '700' },
-  departureBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F3F4EF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  departureText: { fontSize: 11, color: '#006837', fontWeight: '700' },
-  addaRoutes: { fontSize: 11, color: '#6F7A70' },
+  addaName: { fontSize: 13, fontWeight: '700', color: '#0F172A' },
+  addaUrdu: { fontSize: 11, color: '#B45309', fontWeight: '600' },
+  distanceChip: { backgroundColor: '#F1F5F9', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  distanceText: { fontSize: 10, color: '#475569', fontWeight: '700' },
+  departureBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  departureText: { fontSize: 11, color: '#10B981', fontWeight: '700' },
+  addaRoutes: { fontSize: 11, color: '#64748B' },
   bookSeatBtn: {
-    backgroundColor: '#006837',
+    backgroundColor: '#10B981',
     paddingVertical: 8,
     borderRadius: 8,
     flexDirection: 'row',
@@ -1046,30 +1046,30 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E7E9E4',
+    borderColor: '#F1F5F9',
   },
-  placeItemSelected: { borderColor: '#006837', borderWidth: 1.5, backgroundColor: '#F3F4EF' },
-  placeIconBox: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#EDEEEA', alignItems: 'center', justifyContent: 'center' },
-  placeName: { fontSize: 13, fontWeight: '600', color: '#191C1A' },
-  placeAddress: { fontSize: 11, color: '#6F7A70', marginTop: 1 },
-  addaTag: { backgroundColor: '#FED65B', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  addaTagText: { fontSize: 10, fontWeight: '700', color: '#735C00' },
+  placeItemSelected: { borderColor: '#10B981', borderWidth: 1.5, backgroundColor: '#F8FAFC' },
+  placeIconBox: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
+  placeName: { fontSize: 13, fontWeight: '600', color: '#0F172A' },
+  placeAddress: { fontSize: 11, color: '#64748B', marginTop: 1 },
+  addaTag: { backgroundColor: '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  addaTagText: { fontSize: 10, fontWeight: '700', color: '#B45309' },
   bookingBarCard: {
     margin: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 14,
     borderWidth: 1.5,
-    borderColor: '#006837',
-    shadowColor: '#000',
+    borderColor: '#10B981',
+    shadowColor: '#0F172A',
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
   },
-  bookingRouteLabel: { fontSize: 10, fontWeight: '800', color: '#006837', letterSpacing: 0.5 },
-  bookingRouteName: { fontSize: 14, fontWeight: '700', color: '#191C1A', marginTop: 2 },
+  bookingRouteLabel: { fontSize: 10, fontWeight: '800', color: '#10B981', letterSpacing: 0.5 },
+  bookingRouteName: { fontSize: 14, fontWeight: '700', color: '#0F172A', marginTop: 2 },
   requestRideBtn: {
-    backgroundColor: '#006837',
+    backgroundColor: '#10B981',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
@@ -1077,7 +1077,7 @@ const styles = StyleSheet.create({
   },
   requestRideBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
   // Modal styles
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.6)', justifyContent: 'flex-end' },
   seatModalContent: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
@@ -1085,45 +1085,45 @@ const styles = StyleSheet.create({
     padding: 18,
     maxHeight: '90%',
   },
-  seatModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', borderBottomWidth: 1, borderBottomColor: '#E7E9E4', paddingBottom: 12, marginBottom: 12 },
-  seatModalTitle: { fontSize: 15, fontWeight: '700', color: '#191C1A' },
-  seatModalSubtitle: { fontSize: 11, color: '#6F7A70', marginTop: 2 },
-  ruleBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FED65B', padding: 8, borderRadius: 8, marginBottom: 12 },
-  ruleText: { fontSize: 11, color: '#735C00', fontWeight: '600', flex: 1 },
+  seatModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', borderBottomWidth: 1, borderBottomColor: '#F1F5F9', paddingBottom: 12, marginBottom: 12 },
+  seatModalTitle: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
+  seatModalSubtitle: { fontSize: 11, color: '#64748B', marginTop: 2 },
+  ruleBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FEF3C7', padding: 8, borderRadius: 8, marginBottom: 12 },
+  ruleText: { fontSize: 11, color: '#B45309', fontWeight: '600', flex: 1 },
   seatLegendRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 14 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendBox: { width: 14, height: 14, borderRadius: 3 },
-  legendLabel: { fontSize: 11, color: '#3F4940' },
-  cabinBox: { backgroundColor: '#F3F4EF', borderRadius: 12, padding: 14, gap: 10, borderWidth: 1, borderColor: '#BEC9BE' },
+  legendLabel: { fontSize: 11, color: '#475569' },
+  cabinBox: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 14, gap: 10, borderWidth: 1, borderColor: '#E2E8F0' },
   cabinRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-  driverSeatBox: { flex: 1, height: 38, backgroundColor: '#E7E9E4', borderRadius: 6, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 4 },
-  driverSeatLabel: { fontSize: 10, color: '#6F7A70', fontWeight: 'bold' },
+  driverSeatBox: { flex: 1, height: 38, backgroundColor: '#F1F5F9', borderRadius: 6, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 4 },
+  driverSeatLabel: { fontSize: 10, color: '#64748B', fontWeight: 'bold' },
   ladiesRow: { backgroundColor: '#FCE7F3', padding: 8, borderRadius: 8, flexDirection: 'column', gap: 6 },
   ladiesBadge: { alignSelf: 'center' },
   ladiesBadgeText: { fontSize: 10, color: '#BE185D', fontWeight: 'bold' },
-  seatBtn: { flex: 1, height: 38, backgroundColor: '#FFFFFF', borderRadius: 6, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#BEC9BE' },
-  seatBtnSelected: { backgroundColor: '#FFB800', borderColor: '#735C00' },
-  seatNum: { fontSize: 11, fontWeight: '700', color: '#191C1A' },
+  seatBtn: { flex: 1, height: 38, backgroundColor: '#FFFFFF', borderRadius: 6, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  seatBtnSelected: { backgroundColor: '#F59E0B', borderColor: '#B45309' },
+  seatNum: { fontSize: 11, fontWeight: '700', color: '#0F172A' },
   seatNumSelected: { color: '#000000', fontWeight: '900' },
-  paymentOptionTitle: { fontSize: 12, fontWeight: '700', color: '#191C1A', marginBottom: 8 },
-  paymentCard: { backgroundColor: '#F3F4EF', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#BEC9BE', marginBottom: 6 },
-  paymentCardSelected: { borderColor: '#006837', backgroundColor: '#EDEEEA' },
-  paymentCardTitle: { fontSize: 12, fontWeight: '700', color: '#191C1A' },
-  paymentCardSub: { fontSize: 10, color: '#6F7A70', marginTop: 1 },
-  seatConfirmBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#E7E9E4' },
-  totalFareLabel: { fontSize: 11, color: '#6F7A70' },
-  totalFareAmount: { fontSize: 16, fontWeight: '800', color: '#006837' },
-  confirmReserveBtn: { backgroundColor: '#006837', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  paymentOptionTitle: { fontSize: 12, fontWeight: '700', color: '#0F172A', marginBottom: 8 },
+  paymentCard: { backgroundColor: '#F8FAFC', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 6 },
+  paymentCardSelected: { borderColor: '#10B981', backgroundColor: '#F1F5F9' },
+  paymentCardTitle: { fontSize: 12, fontWeight: '700', color: '#0F172A' },
+  paymentCardSub: { fontSize: 10, color: '#64748B', marginTop: 1 },
+  seatConfirmBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
+  totalFareLabel: { fontSize: 11, color: '#64748B' },
+  totalFareAmount: { fontSize: 16, fontWeight: '800', color: '#10B981' },
+  confirmReserveBtn: { backgroundColor: '#10B981', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
   confirmReserveBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   // Ticket screen
-  successIconBox: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#9EF6B6', alignItems: 'center', justifyContent: 'center' },
-  ticketConfirmedTitle: { fontSize: 16, fontWeight: '800', color: '#004D27' },
-  ticketConfirmedSub: { fontSize: 13, color: '#735C00' },
-  qrTicketCard: { width: '100%', backgroundColor: '#F3F4EF', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#BEC9BE' },
-  ticketBarcodeText: { fontSize: 11, fontWeight: 'bold', color: '#006837', marginBottom: 8 },
-  mockQrBox: { backgroundColor: '#FFFFFF', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#BEC9BE', marginBottom: 8 },
-  ticketDetail: { fontSize: 12, color: '#191C1A' },
-  ticketInstruction: { fontSize: 10, color: '#6F7A70', textAlign: 'center', marginTop: 10, borderTopWidth: 1, borderTopColor: '#BEC9BE', paddingTop: 8 },
+  successIconBox: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#D1FAE5', alignItems: 'center', justifyContent: 'center' },
+  ticketConfirmedTitle: { fontSize: 16, fontWeight: '800', color: '#059669' },
+  ticketConfirmedSub: { fontSize: 13, color: '#B45309' },
+  qrTicketCard: { width: '100%', backgroundColor: '#F8FAFC', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  ticketBarcodeText: { fontSize: 11, fontWeight: 'bold', color: '#10B981', marginBottom: 8 },
+  mockQrBox: { backgroundColor: '#FFFFFF', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 8 },
+  ticketDetail: { fontSize: 12, color: '#0F172A' },
+  ticketInstruction: { fontSize: 10, color: '#64748B', textAlign: 'center', marginTop: 10, borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 8 },
   // Auth Modal Styles
   authModalContent: {
     backgroundColor: '#FFFFFF',
@@ -1137,20 +1137,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     borderBottomWidth: 1,
-    borderBottomColor: '#E7E9E4',
+    borderBottomColor: '#F1F5F9',
     paddingBottom: 12,
     marginBottom: 16,
   },
-  authModalTitle: { fontSize: 17, fontWeight: '800', color: '#004D27' },
-  authModalSubtitle: { fontSize: 12, color: '#6F7A70', marginTop: 2 },
+  authModalTitle: { fontSize: 17, fontWeight: '800', color: '#059669' },
+  authModalSubtitle: { fontSize: 12, color: '#64748B', marginTop: 2 },
   guestCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#006837',
+    borderColor: '#10B981',
     padding: 14,
     marginBottom: 14,
   },
@@ -1158,30 +1158,30 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#C8E6C9',
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  guestCardTitle: { fontSize: 15, fontWeight: '800', color: '#004D27' },
-  guestCardSub: { fontSize: 11, color: '#2E7D32', marginTop: 2, lineHeight: 15 },
+  guestCardTitle: { fontSize: 15, fontWeight: '800', color: '#059669' },
+  guestCardSub: { fontSize: 11, color: '#059669', marginTop: 2, lineHeight: 15 },
   recommendedBadge: {
-    backgroundColor: '#FED65B',
+    backgroundColor: '#FEF3C7',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
   },
-  recommendedText: { fontSize: 9, fontWeight: '800', color: '#735C00' },
+  recommendedText: { fontSize: 9, fontWeight: '800', color: '#B45309' },
   orDividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginVertical: 12,
   },
-  orDividerLine: { flex: 1, height: 1, backgroundColor: '#E7E9E4' },
-  orDividerText: { fontSize: 11, color: '#6F7A70', fontWeight: '600' },
+  orDividerLine: { flex: 1, height: 1, backgroundColor: '#F1F5F9' },
+  orDividerText: { fontSize: 11, color: '#64748B', fontWeight: '600' },
   authTabRow: {
     flexDirection: 'row',
-    backgroundColor: '#F3F4EF',
+    backgroundColor: '#F8FAFC',
     borderRadius: 10,
     padding: 4,
     marginBottom: 14,
@@ -1194,13 +1194,13 @@ const styles = StyleSheet.create({
   },
   authTabBtnActive: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    shadowColor: '#0F172A',
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
   },
-  authTabText: { fontSize: 12, fontWeight: '600', color: '#6F7A70' },
-  authTabTextActive: { color: '#004D27', fontWeight: '800' },
+  authTabText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
+  authTabTextActive: { color: '#059669', fontWeight: '800' },
   authErrorBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1213,19 +1213,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   authErrorText: { fontSize: 11, color: '#DC2626', flex: 1 },
-  inputLabel: { fontSize: 12, fontWeight: '700', color: '#191C1A', marginBottom: 4, marginTop: 8 },
+  inputLabel: { fontSize: 12, fontWeight: '700', color: '#0F172A', marginBottom: 4, marginTop: 8 },
   authInput: {
-    backgroundColor: '#F3F4EF',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#BEC9BE',
+    borderColor: '#E2E8F0',
     borderRadius: 10,
     height: 44,
     paddingHorizontal: 12,
     fontSize: 13,
-    color: '#191C1A',
+    color: '#0F172A',
   },
   authSubmitBtn: {
-    backgroundColor: '#006837',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     height: 48,
     flexDirection: 'row',

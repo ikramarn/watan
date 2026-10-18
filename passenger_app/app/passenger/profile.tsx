@@ -32,20 +32,20 @@ export default function PassengerProfile() {
         {/* User Card */}
         <View style={[styles.userCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.avatar}>
-            <Ionicons name="person" size={28} color="#006837" />
+            <Ionicons name="person" size={28} color="#10B981" />
           </View>
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>{user?.name || 'Ayesha Khan'}</Text>
               <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark-circle" size={13} color="#006837" />
+                <Ionicons name="checkmark-circle" size={13} color="#10B981" />
                 <Text style={styles.verifiedText}>Verified</Text>
               </View>
             </View>
             <Text style={{ color: theme.textDim, fontSize: 13 }}>{user?.email || 'ayesha.khan@watan.pk'}</Text>
             <View style={{ flexDirection: 'row', gap: 6, marginTop: 8 }}>
-              <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                <Text style={{ color: '#006837', fontSize: 11, fontWeight: '700' }}>Phone Verified</Text>
+              <View style={{ backgroundColor: '#D1FAE5', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                <Text style={{ color: '#059669', fontSize: 11, fontWeight: '700' }}>Phone Verified</Text>
               </View>
               <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
                 <Text style={{ color: '#B45309', fontSize: 11, fontWeight: '700' }}>{user?.phone || '+92 300 1234567'}</Text>
@@ -77,7 +77,7 @@ export default function PassengerProfile() {
               <Text style={{ color: theme.textDim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 }}>
                 Watan Wallet Balance
               </Text>
-              <Text style={{ color: '#006837', fontSize: 26, fontWeight: '900', marginTop: 2 }}>
+              <Text style={{ color: '#10B981', fontSize: 26, fontWeight: '900', marginTop: 2 }}>
                 Rs. 450
               </Text>
             </View>
@@ -95,7 +95,7 @@ export default function PassengerProfile() {
         <View style={{ padding: 20, gap: 8, paddingTop: 10 }}>
           {rows.map((r) => (
             <View key={r.label} style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Ionicons name={r.icon as any} size={20} color="#006837" />
+              <Ionicons name={r.icon as any} size={20} color="#10B981" />
               <Text style={{ color: theme.text, fontSize: 14, flex: 1, fontWeight: '600' }}>{r.label}</Text>
               <Ionicons name="chevron-forward" size={16} color={theme.textFaint} />
             </View>
@@ -104,14 +104,14 @@ export default function PassengerProfile() {
           {/* Switch to Driver App */}
           <TouchableOpacity
             onPress={() => router.replace('/driver/home' as any)}
-            style={[styles.row, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0', marginTop: 4 }]}
+            style={[styles.row, { backgroundColor: 'rgba(16, 185, 129, 0.08)', borderColor: '#10B981', marginTop: 4 }]}
           >
-            <Ionicons name="speedometer" size={20} color="#006837" />
+            <Ionicons name="speedometer" size={20} color="#10B981" />
             <View style={{ flex: 1 }}>
-              <Text style={{ color: '#004D27', fontSize: 14, fontWeight: '700' }}>Switch to Watan Captain / Driver Mode</Text>
-              <Text style={{ color: '#166534', fontSize: 11 }}>ڈرائیور موڈ پر جائیں · Earn with 0% Stand Fee</Text>
+              <Text style={{ color: '#059669', fontSize: 14, fontWeight: '700' }}>Switch to Watan Captain / Driver Mode</Text>
+              <Text style={{ color: '#059669', fontSize: 11 }}>ڈرائیور موڈ پر جائیں · Earn with 0% Stand Fee</Text>
             </View>
-            <Ionicons name="arrow-forward" size={16} color="#006837" />
+            <Ionicons name="arrow-forward" size={16} color="#10B981" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -163,22 +163,22 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
   userCard: { marginHorizontal: 20, padding: 18, borderRadius: 24, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center' },
-  verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#DCFCE7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
-  verifiedText: { color: '#006837', fontSize: 11, fontWeight: '700' },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#D1FAE5', alignItems: 'center', justifyContent: 'center' },
+  verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#D1FAE5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
+  verifiedText: { color: '#059669', fontSize: 11, fontWeight: '700' },
   passCard: {
     marginHorizontal: 20,
     marginTop: 12,
     padding: 16,
     borderRadius: 20,
-    backgroundColor: '#004D27',
+    backgroundColor: '#059669',
   },
   passTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  discountBadge: { backgroundColor: '#FED65B', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
-  discountText: { color: '#735C00', fontSize: 10, fontWeight: '800' },
-  passSub: { color: '#8EE4A6', fontSize: 11, marginTop: 6, lineHeight: 16 },
+  discountBadge: { backgroundColor: '#FEF3C7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  discountText: { color: '#B45309', fontSize: 10, fontWeight: '800' },
+  passSub: { color: '#D1FAE5', fontSize: 11, marginTop: 6, lineHeight: 16 },
   walletCard: { marginHorizontal: 20, marginTop: 12, padding: 16, borderRadius: 20, borderWidth: 1 },
-  topUpBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#006837', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
+  topUpBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
   topUpBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   row: { padding: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoutBtn: { height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },

@@ -152,23 +152,23 @@ export default function DriverHistory() {
                   style={[
                     styles.badge,
                     {
-                      backgroundColor: item.mode === 'adda_pari' ? '#00683720' : '#FACC1520',
-                      borderColor: item.mode === 'adda_pari' ? '#59DF89' : '#FACC15',
+                      backgroundColor: item.mode === 'adda_pari' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                      borderColor: item.mode === 'adda_pari' ? '#10B981' : '#F59E0B',
                     },
                   ]}
                 >
-                  <Text style={[styles.badgeText, { color: item.mode === 'adda_pari' ? '#59DF89' : '#FACC15' }]}>
+                  <Text style={[styles.badgeText, { color: item.mode === 'adda_pari' ? '#10B981' : '#F59E0B' }]}>
                     {item.mode === 'adda_pari' ? 'Pari Turn (0% Fee)' : 'Doorstep Roaming'}
                   </Text>
                 </View>
               </View>
-              <Text style={{ color: '#59DF89', fontSize: 18, fontWeight: '800' }}>
+              <Text style={{ color: '#10B981', fontSize: 18, fontWeight: '800' }}>
                 Rs. {item.fare?.toLocaleString?.() ?? item.fare}
               </Text>
             </View>
 
             <View style={{ marginTop: 12, gap: 6 }}>
-              <Row theme={theme} icon="location" color="#59DF89" text={item.pickup?.address} />
+              <Row theme={theme} icon="location" color="#10B981" text={item.pickup?.address} />
               <Row theme={theme} icon="flag" color="#EF4444" text={item.destination?.address} />
             </View>
 
@@ -181,7 +181,7 @@ export default function DriverHistory() {
                 <Text style={{ color: theme.textDim, fontSize: 11 }}>
                   {new Date(item.created_at).toLocaleDateString()}
                 </Text>
-                <Ionicons name="chevron-forward" size={12} color="#869487" />
+                <Ionicons name="chevron-forward" size={12} color="#64748B" />
               </View>
             </View>
           </TouchableOpacity>
@@ -194,7 +194,7 @@ export default function DriverHistory() {
           <View style={[styles.modalContent, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.modalHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <View style={[styles.modalIcon, { backgroundColor: selectedTrip?.mode === 'adda_pari' ? '#006837' : '#FACC15' }]}>
+                <View style={[styles.modalIcon, { backgroundColor: selectedTrip?.mode === 'adda_pari' ? '#059669' : '#F59E0B' }]}>
                   <Ionicons
                     name={selectedTrip?.mode === 'adda_pari' ? 'bus' : 'car'}
                     size={20}
@@ -226,7 +226,7 @@ export default function DriverHistory() {
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Text style={{ color: theme.textDim, fontSize: 13 }}>Watan Platform Commission:</Text>
-                    <Text style={{ color: selectedTrip.platform_fee === 0 ? '#59DF89' : '#EF4444', fontSize: 14, fontWeight: '700' }}>
+                    <Text style={{ color: selectedTrip.platform_fee === 0 ? '#10B981' : '#EF4444', fontSize: 14, fontWeight: '700' }}>
                       {selectedTrip.platform_fee === 0 ? 'Rs. 0 (0% Stand Exemption)' : `-Rs. ${selectedTrip.platform_fee} (10%)`}
                     </Text>
                   </View>
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#27332F',
+    borderBottomColor: '#1E293B',
   },
   modalIcon: {
     width: 38,
@@ -332,17 +332,17 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#27332F',
+    backgroundColor: '#1E293B',
     alignItems: 'center',
     justifyContent: 'center',
   },
   fareBreakdownBox: {
-    backgroundColor: '#151D1B',
+    backgroundColor: '#111827',
     padding: 14,
     borderRadius: 16,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#27332F',
+    borderColor: '#1E293B',
   },
   detailRow: {
     flexDirection: 'row',

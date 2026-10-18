@@ -19,10 +19,10 @@ interface Props {
 
 const COLOR_MAP: Record<MapMarker['kind'], string> = {
   self: '#3B82F6',
-  pickup: '#22C55E',
+  pickup: '#10B981',
   destination: '#EF4444',
-  driver: '#FACC15',
-  car: '#FACC15',
+  driver: '#10B981',
+  car: '#10B981',
 };
 
 export default function MapView({ center, markers = [], theme, height = '100%', showRoute }: Props) {

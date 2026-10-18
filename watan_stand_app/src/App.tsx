@@ -526,7 +526,7 @@ export default function App() {
         // Stand Hub Marker (Pirwadhai Al-Makkah Stand)
         const standIcon = window.L.divIcon({
           className: "custom-stand-icon",
-          html: `<div style="background:#006837; color:#fff; padding:6px 10px; border-radius:12px; font-weight:800; font-size:11px; border:2px solid #59df89; box-shadow:0 4px 12px rgba(0,0,0,0.5); display:flex; align-items:center; gap:4px; white-space:nowrap;">
+          html: `<div style="background:#059669; color:#fff; padding:6px 12px; border-radius:12px; font-weight:800; font-size:11px; border:2px solid #10B981; box-shadow:0 4px 14px rgba(0,0,0,0.5); display:flex; align-items:center; gap:6px; white-space:nowrap;">
             <span>🏢</span> Al-Makkah Stand (Stand Hub)
           </div>`,
           iconSize: [160, 32],
@@ -535,10 +535,10 @@ export default function App() {
         window.L.marker([33.6261, 73.0479], { icon: standIcon }).addTo(map)
           .bindPopup("<b>Al-Makkah Wagon Stand, Pirwadhai</b><br>Stand Hub #ISB-001 • 3 Active Bays");
 
-        // Geofence Circle around Stand (1.5 km radius)
+        // Geofence Circle around Stand (1.2 km radius)
         window.L.circle([33.6261, 73.0479], {
-          color: "#59df89",
-          fillColor: "#006837",
+          color: "#10B981",
+          fillColor: "#059669",
           fillOpacity: 0.15,
           radius: 1200,
         }).addTo(map);
@@ -546,11 +546,12 @@ export default function App() {
         // Vehicle Markers
         fleetVehicles.forEach((veh) => {
           const isSelected = selectedVehicleId === veh.id;
+          const markerBg = veh.status === 'in_bay' ? '#10B981' : veh.status === 'en_route' ? '#3B82F6' : '#F59E0B';
           const markerHtml = `
-            <div style="background:${veh.status === 'in_bay' ? '#006837' : veh.status === 'en_route' ? '#0284c7' : '#eab308'}; color:#fff; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:10px; border:2px solid ${isSelected ? '#fff' : '#000'}; box-shadow:0 3px 8px rgba(0,0,0,0.4); display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <div style="background:${markerBg}; color:#fff; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:10px; border:2px solid ${isSelected ? '#fff' : '#0F172A'}; box-shadow:0 3px 10px rgba(0,0,0,0.5); display:flex; align-items:center; gap:4px; cursor:pointer;">
               <span>${veh.vehicleType.includes('Coaster') ? '🚌' : veh.vehicleType.includes('Qingqi') ? '🛺' : '🚐'}</span>
               <span>${veh.plate}</span>
-              ${veh.speedKmH > 0 ? `<span style="background:rgba(0,0,0,0.3); padding:1px 4px; border-radius:4px; font-size:9px;">${veh.speedKmH}km/h</span>` : ''}
+              ${veh.speedKmH > 0 ? `<span style="background:rgba(0,0,0,0.25); padding:1px 4px; border-radius:4px; font-size:9px;">${veh.speedKmH}km/h</span>` : ''}
             </div>
           `;
           const icon = window.L.divIcon({
@@ -1382,15 +1383,15 @@ export default function App() {
                   <div className="absolute bottom-4 left-4 right-4 z-10 bg-surface-container-lowest/95 backdrop-blur-md p-2.5 rounded-xl border border-outline-variant flex flex-wrap items-center justify-between gap-3 text-[11px] shadow-lg">
                     <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-1.5 font-bold">
-                        <span className="w-3 h-3 rounded-full bg-[#006837] border border-emerald-400"></span>
+                        <span className="w-3 h-3 rounded-full bg-[#10B981] border border-emerald-300"></span>
                         <span className="text-on-surface">Stand Loading Bay (0% Pari)</span>
                       </div>
                       <div className="flex items-center gap-1.5 font-bold">
-                        <span className="w-3 h-3 rounded-full bg-[#0284c7] border border-sky-400"></span>
+                        <span className="w-3 h-3 rounded-full bg-[#3B82F6] border border-blue-300"></span>
                         <span className="text-on-surface">En Route Corridors (M-2 / GT Road)</span>
                       </div>
                       <div className="flex items-center gap-1.5 font-bold">
-                        <span className="w-3 h-3 rounded-full bg-[#eab308] border border-amber-400"></span>
+                        <span className="w-3 h-3 rounded-full bg-[#F59E0B] border border-amber-300"></span>
                         <span className="text-on-surface">Independent Roaming</span>
                       </div>
                     </div>

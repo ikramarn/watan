@@ -143,7 +143,7 @@ export default function PassengerHistory() {
 
       {loading && items.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color="#006837" />
+          <ActivityIndicator size="large" color="#10B981" />
           <Text style={{ color: theme.textDim, marginTop: 12, fontSize: 13 }}>Loading Watan trip history...</Text>
         </View>
       ) : (
@@ -177,7 +177,7 @@ export default function PassengerHistory() {
                 }}
                 style={[
                   styles.card,
-                  { backgroundColor: theme.surface, borderColor: isActive ? '#006837' : theme.border },
+                  { backgroundColor: theme.surface, borderColor: isActive ? '#10B981' : theme.border },
                   isActive && styles.activeCardGlow,
                 ]}
               >
@@ -189,18 +189,18 @@ export default function PassengerHistory() {
                       </Text>
                     </View>
                     {item.ride_type === 'wagon' && (
-                      <View style={[styles.pill, { backgroundColor: '#E7E9E4' }]}>
-                        <Text style={{ color: '#004D27', fontSize: 10, fontWeight: '700' }}>ADDA PARCHI</Text>
+                      <View style={[styles.pill, { backgroundColor: '#F1F5F9' }]}>
+                        <Text style={{ color: '#059669', fontSize: 10, fontWeight: '700' }}>ADDA PARCHI</Text>
                       </View>
                     )}
                   </View>
-                  <Text style={{ color: '#006837', fontSize: 18, fontWeight: '800' }}>
+                  <Text style={{ color: '#10B981', fontSize: 18, fontWeight: '800' }}>
                     Rs. {item.fare?.toLocaleString?.() ?? item.fare}
                   </Text>
                 </View>
 
                 <View style={{ marginTop: 14, gap: 8 }}>
-                  <Row theme={theme} icon="location" color="#006837" text={item.pickup?.address || 'Current Location'} />
+                  <Row theme={theme} icon="location" color="#10B981" text={item.pickup?.address || 'Current Location'} />
                   <Row theme={theme} icon="flag" color="#EF4444" text={item.destination?.address || 'Destination'} />
                 </View>
 
@@ -377,20 +377,20 @@ const styles = StyleSheet.create({
   },
   guestNoticeText: { flex: 1, color: '#713F12', fontSize: 12, fontWeight: '500' },
   guestNoticeLink: { color: '#006837', fontSize: 12, fontWeight: '800', textDecorationLine: 'underline' },
-  card: { padding: 16, borderRadius: 20, borderWidth: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  activeCardGlow: { borderWidth: 1.5, borderColor: '#006837' },
+  card: { padding: 16, borderRadius: 20, borderWidth: 1, shadowColor: '#0F172A', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
+  activeCardGlow: { borderWidth: 1.5, borderColor: '#10B981' },
   pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   activeBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(0, 104, 55, 0.1)',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
     marginTop: 10,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
   },
-  activeBannerText: { color: '#006837', fontSize: 12, fontWeight: '700' },
+  activeBannerText: { color: '#10B981', fontSize: 12, fontWeight: '700' },
   viewParchiRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -398,13 +398,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F0F1EC',
+    borderTopColor: '#F1F5F9',
   },
-  viewParchiText: { color: '#006837', fontSize: 12, fontWeight: '600', flex: 1 },
+  viewParchiText: { color: '#10B981', fontSize: 12, fontWeight: '600', flex: 1 },
   cancelledNote: { marginTop: 8, paddingHorizontal: 4 },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 18,
@@ -415,13 +415,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
   },
   parchiHeader: {
-    backgroundColor: '#F8FAF5',
+    backgroundColor: '#F8FAFC',
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -435,37 +435,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E1E3DE',
+    borderColor: '#E2E8F0',
   },
-  parchiMainTitle: { color: '#004D27', fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
-  parchiUrduTitle: { color: '#3F4940', fontSize: 11, fontWeight: '600' },
+  parchiMainTitle: { color: '#059669', fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
+  parchiUrduTitle: { color: '#475569', fontSize: 11, fontWeight: '600' },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#E7E9E4',
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   perforatedLine: {
     height: 2,
-    backgroundColor: '#E1E3DE',
+    backgroundColor: '#E2E8F0',
     marginHorizontal: 12,
   },
-  labelSub: { fontSize: 10, color: '#6F7A70', fontWeight: '700', letterSpacing: 0.5 },
-  codeText: { fontSize: 20, color: '#004D27', fontWeight: '900', letterSpacing: 0.5 },
-  fareText: { fontSize: 22, color: '#006837', fontWeight: '900' },
+  labelSub: { fontSize: 10, color: '#64748B', fontWeight: '700', letterSpacing: 0.5 },
+  codeText: { fontSize: 20, color: '#059669', fontWeight: '900', letterSpacing: 0.5 },
+  fareText: { fontSize: 22, color: '#10B981', fontWeight: '900' },
   qrContainer: {
     alignItems: 'center',
     paddingVertical: 10,
-    backgroundColor: '#F8FAF5',
+    backgroundColor: '#F8FAFC',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E1E3DE',
+    borderColor: '#E2E8F0',
   },
-  qrSubText: { fontSize: 11, color: '#6F7A70', fontWeight: '600', marginTop: 4 },
+  qrSubText: { fontSize: 11, color: '#64748B', fontWeight: '600', marginTop: 4 },
   specsBox: {
-    backgroundColor: '#F3F4EF',
+    backgroundColor: '#F8FAFC',
     padding: 12,
     borderRadius: 14,
     gap: 6,
@@ -475,22 +475,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  specLabel: { fontSize: 12, color: '#6F7A70', fontWeight: '600' },
-  specValue: { fontSize: 12, color: '#191C1A', fontWeight: '700', flex: 1, textAlign: 'right', marginLeft: 8 },
+  specLabel: { fontSize: 12, color: '#64748B', fontWeight: '600' },
+  specValue: { fontSize: 12, color: '#0F172A', fontWeight: '700', flex: 1, textAlign: 'right', marginLeft: 8 },
   instructionsBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
     padding: 10,
     borderRadius: 12,
   },
-  instructionsText: { color: '#006837', fontSize: 11, fontWeight: '600', flex: 1 },
+  instructionsText: { color: '#059669', fontSize: 11, fontWeight: '600', flex: 1 },
   doneBtn: {
     flex: 1,
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#006837',
+    backgroundColor: '#10B981',
     alignItems: 'center',
     justifyContent: 'center',
   },

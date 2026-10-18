@@ -109,7 +109,7 @@ export default function Chat() {
           </TouchableOpacity>
           <View style={{ alignItems: 'center' }}>
             <Text style={{ color: theme.text, fontSize: 16, fontWeight: '700' }}>Captain Chat (ڈرائیور رابطہ)</Text>
-            <Text style={{ color: '#006837', fontSize: 11, fontWeight: '600' }}>Active Ride Session</Text>
+            <Text style={{ color: '#10B981', fontSize: 11, fontWeight: '600' }}>Active Ride Session</Text>
           </View>
           <Text style={{ color: connState === 'connected' ? theme.success : theme.textDim, fontSize: 11 }}>
             {connState}
@@ -128,7 +128,7 @@ export default function Chat() {
               <View
                 style={{
                   alignSelf: mine ? 'flex-end' : 'flex-start',
-                  backgroundColor: mine ? '#006837' : theme.surfaceAlt,
+                  backgroundColor: mine ? '#10B981' : theme.surfaceAlt,
                   paddingHorizontal: 14, paddingVertical: 10,
                   borderRadius: 18, maxWidth: '78%',
                 }}
@@ -174,7 +174,7 @@ export default function Chat() {
           <TouchableOpacity
             testID="chat-send-btn"
             onPress={() => send()}
-            style={[styles.sendBtn, { backgroundColor: '#006837' }]}
+            style={[styles.sendBtn, { backgroundColor: '#10B981' }]}
           >
             <Ionicons name="send" size={18} color="#FFFFFF" />
           </TouchableOpacity>

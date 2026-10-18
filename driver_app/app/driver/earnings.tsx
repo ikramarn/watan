@@ -81,10 +81,10 @@ export default function Earnings() {
         <Text style={{ color: theme.textDim, fontSize: 13, marginTop: 4 }}>آمدنی اور منافع · Real-time ledger & Raast instant payouts</Text>
 
         {/* 0% Commission Adda Benefit Banner */}
-        <View style={[styles.benefitBanner, { backgroundColor: '#00683718', borderColor: '#006837' }]}>
+        <View style={[styles.benefitBanner, { backgroundColor: 'rgba(16, 185, 129, 0.1)', borderColor: '#10B981' }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Ionicons name="sparkles" size={18} color="#59DF89" />
-            <Text style={{ color: '#59DF89', fontWeight: '800', fontSize: 13 }}>Watan Adda Advantage Active</Text>
+            <Ionicons name="sparkles" size={18} color="#10B981" />
+            <Text style={{ color: '#10B981', fontWeight: '800', fontSize: 13 }}>Watan Adda Advantage Active</Text>
           </View>
           <Text style={{ color: theme.textDim, fontSize: 12, marginTop: 4, lineHeight: 17 }}>
             Your Pirwadhai Adda pays a flat weekly platform subscription. You keep <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>100% of all passenger fares</Text> on Pari trips (0% commission deducted).
@@ -209,10 +209,10 @@ export default function Earnings() {
                       {
                         backgroundColor:
                           tx.type === 'pari'
-                            ? '#00683725'
+                            ? 'rgba(16, 185, 129, 0.15)'
                             : tx.type === 'roaming'
-                            ? '#FACC1525'
-                            : '#EF444425',
+                            ? 'rgba(245, 158, 11, 0.15)'
+                            : 'rgba(239, 68, 68, 0.15)',
                       },
                     ]}
                   >
@@ -227,9 +227,9 @@ export default function Earnings() {
                       size={18}
                       color={
                         tx.type === 'pari'
-                          ? '#59DF89'
+                          ? '#10B981'
                           : tx.type === 'roaming'
-                          ? '#FACC15'
+                          ? '#F59E0B'
                           : '#EF4444'
                       }
                     />
@@ -246,14 +246,14 @@ export default function Earnings() {
                 <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
                   <Text
                     style={{
-                      color: tx.isPositive ? '#59DF89' : '#EF4444',
+                      color: tx.isPositive ? '#10B981' : '#EF4444',
                       fontSize: 16,
                       fontWeight: '800',
                     }}
                   >
                     {tx.amount}
                   </Text>
-                  <Text style={{ color: '#869487', fontSize: 10, fontWeight: '600', marginTop: 1 }}>
+                  <Text style={{ color: '#64748B', fontSize: 10, fontWeight: '600', marginTop: 1 }}>
                     {tx.fee}
                   </Text>
                 </View>
@@ -268,10 +268,10 @@ export default function Earnings() {
 
 function Card({ theme, label, value, icon, highlight }: any) {
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: highlight ? '#59DF89' : theme.border }]}>
-      <Ionicons name={icon} size={18} color={highlight ? '#59DF89' : theme.accent} />
+    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: highlight ? '#10B981' : theme.border }]}>
+      <Ionicons name={icon} size={18} color={highlight ? '#10B981' : theme.accent} />
       <Text style={{ color: theme.textDim, fontSize: 11, fontWeight: '600', marginTop: 8 }}>{label}</Text>
-      <Text style={{ color: highlight ? '#59DF89' : theme.text, fontSize: 18, fontWeight: '800', marginTop: 4, letterSpacing: -0.4 }}>{value}</Text>
+      <Text style={{ color: highlight ? '#10B981' : theme.text, fontSize: 18, fontWeight: '800', marginTop: 4, letterSpacing: -0.4 }}>{value}</Text>
     </View>
   );
 }
