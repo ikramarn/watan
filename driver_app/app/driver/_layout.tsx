@@ -25,38 +25,38 @@ export default function DriverLayout() {
         tabBarStyle: {
           backgroundColor: theme.surface,
           borderTopColor: theme.border,
-          height: 80,
+          height: 75,
           paddingTop: 8,
-          paddingBottom: 20,
+          paddingBottom: 16,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Drive',
+          title: 'Pari & Drive (پاری)',
           tabBarIcon: ({ color, size }) => <Ionicons name="car-sport" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="earnings"
         options={{
-          title: 'Earnings',
-          tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
+          title: 'Earnings (کمائی)',
+          tabBarIcon: ({ color, size }) => <Ionicons name="wallet-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
-          title: 'Trips',
-          tabBarIcon: ({ color, size }) => <Ionicons name="list" size={size} color={color} />,
+          title: 'Trips (سفر)',
+          tabBarIcon: ({ color, size }) => <Ionicons name="receipt-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Captain (پروفائل)',
           tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} />,
         }}
       />

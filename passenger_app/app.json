@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "GetChum - Fife Taxi & Cabs",
-    "slug": "getchum",
+    "name": "Watan - Pakistan Transport (وطن)",
+    "slug": "watan",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "getchum",
+    "scheme": "watan",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "uk.co.getchum.passenger",
+      "bundleIdentifier": "pk.com.watan.passenger",
       "config": {
         "googleMapsApiKey": "YOUR_IOS_MAPS_KEY"
       },
@@ -25,7 +25,7 @@
       }
     },
     "android": {
-      "package": "uk.co.getchum.passenger",
+      "package": "pk.com.watan.passenger",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000000"

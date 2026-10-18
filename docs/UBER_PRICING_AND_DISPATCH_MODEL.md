@@ -1,181 +1,105 @@
-# Uber & Just Eat Dispatch & Pricing Architecture Specification
-**Prepared for GetChum (Scotland Private Hire & Taxi SaaS)**
-*Reference Blueprint for Future Long-Pickup, Dynamic Fare Decoupling, and Smart Dispatch Implementation*
+# Watan (وطن) — Multi-Modal Pricing & Pari Dispatch Model
 
----
+## 1. Architectural Philosophy
 
-## 1. Executive Summary & Core Challenge
+Urban transportation in Pakistan operates on two distinct physical paradigms:
+1. **On-Demand Doorstep Hailing (Point A to Point B):** Passenger requests a vehicle to their doorstep; driver navigates to pickup; passenger pays for the entire vehicle cabin.
+2. **Adda Pari Rotational Seat Manifest (Corridor Transit):** Passenger boards at a physical stand; pays per seat; vehicle fills to capacity and departs on fixed arterial routes.
 
-In on-demand transportation, there is a fundamental economic mismatch:
-- **Passengers** expect a predictable, fixed quote from their pickup point to their destination (e.g. £7.00 for a 3-mile journey).
-- **Drivers** have varying approach distances ("deadhead" or unpaid pickup legs). A driver 0.5 miles away earns high net profit, while a driver 6 miles away burns fuel and 15 minutes before the paid trip even begins.
-
-If a platform quotes only trip distance and dispatches the job to a far-away driver without compensation:
-1. Drivers repeatedly decline or cancel the job ("cherry-picking").
-2. Passenger wait times spike, leading to ride cancellation and lost customer trust.
-3. Rural or fringe areas (e.g. remote Fife villages, farms, out-of-town hospitals) suffer chronic service failures.
-
----
-
-## 2. Uber's Dispatch & Pricing Model
-
-Uber transitioned from a pure metered time+distance model to **Decoupled Upfront Pricing with Long-Pickup Premiums**.
-
-### 2.1 The Two-Leg Model (Approach vs On-Trip)
-
-$$\text{Total Driver Commitment} = \text{Approach Leg (Leg 1)} + \text{Trip Leg (Leg 2)}$$
+Watan unifies both models within a single real-time engine:
 
 ```
-[Driver Location] ---- (Leg 1: Approach) ----> [Pickup Point] ==== (Leg 2: Trip) ====> [Destination]
-```
-
-### 2.2 Uber Long-Pickup Premium Formula
-
-Uber establishes a **Pickup Distance/Time Threshold ($T_{\text{threshold}}$)**:
-- Typically **9 to 10 minutes** or **5.0 km** in suburban/rural areas.
-- For approach times under $T_{\text{threshold}}$, approach is unpaid (standard deadhead).
-- Once approach exceeds $T_{\text{threshold}}$, the driver starts accruing standard per-minute and per-kilometer rates:
-
-$$\text{Long Pickup Fee} = \max\Big(0, \, (d_{\text{pickup}} - d_{\text{threshold}}) \times R_{\text{km}} + (t_{\text{pickup}} - t_{\text{threshold}}) \times R_{\text{min}}\Big)$$
-
-Where:
-- $d_{\text{pickup}}$: Road distance from driver to passenger pickup.
-- $d_{\text{threshold}}$: Distance threshold (e.g. 5.0 km).
-- $t_{\text{pickup}}$: Estimated travel time to pickup.
-- $t_{\text{threshold}}$: Time threshold (e.g. 9.0 min).
-- $R_{\text{km}}, R_{\text{min}}$: Standard base distance and time rates.
-
-### 2.3 Upfront Decoupling (Passenger Quote vs Driver Payout)
-
-Uber completely decoupled passenger charge from driver earnings:
-
-1. **Passenger Upfront Fare ($F_{\text{pax}}$)**:
-   $$F_{\text{pax}} = \max\Big(F_{\text{min}}, \, (B + d_{\text{trip}} \cdot R_{\text{km}} + t_{\text{trip}} \cdot R_{\text{min}}) \times S_{\text{demand}} + S_{\text{long\_pickup\_charge}}\Big)$$
-
-2. **Driver Guaranteed Offer ($E_{\text{driver}}$)**:
-   $$E_{\text{driver}} = (1 - \text{Fee}_{\text{platform}}) \times F_{\text{base}} + \text{Trip Supplement} + \text{Long Pickup Premium}$$
-
-3. **Dynamic Trip Supplement ("Bidding / Escalation")**:
-   If Driver #1 declines $\rightarrow$ offer moves to Driver #2.
-   If 3 drivers decline or 45 seconds elapse, the algorithm injects a **Trip Supplement (+£1.00, +£2.00, +£3.00)** subsidized from the platform's margin to incentivize a further driver to accept without breaking the customer's upfront price.
-
----
-
-## 3. Just Eat & Deliveroo Courier Model
-
-Food delivery algorithms solve an even tighter constraint (food cools down within 15 minutes):
-
-### 3.1 Strict Geo-Fencing (Radius Caps)
-- Delivery radius is capped at **4.0 to 6.0 km** per restaurant. Customers cannot order outside the radius.
-
-### 3.2 Full-Route Pay Formula
-Couriers are paid for **both legs**:
-$$\text{Courier Fee} = \text{Collection Base} + (d_{\text{approach}} \times R_{\text{approach}}) + (d_{\text{delivery}} \times R_{\text{delivery}}) + \text{Peak Boost}$$
-
-### 3.3 Dynamic Order Boost
-If no courier accepts within 3 minutes:
-- Order boost kicks in: $+£1.50 \rightarrow +£3.00$.
-- Paid out of the platform's 20–30% restaurant commission.
-
----
-
-## 4. Traditional UK Private Hire Model (Autocab / iCabbi / Cordic)
-
-In Scotland (Fife, Edinburgh, Glasgow), traditional private hire operators use:
-
-### 4.1 Zone & Plot Queuing
-- Council areas are divided into numbered plots (e.g., Plot 101: Kirkcaldy Station, Plot 102: Victoria Hospital, Plot 201: Glenrothes Town).
-- Priority 1: Drivers waiting idle inside the pickup plot.
-- Priority 2: Drivers in adjacent ring plots.
-- Priority 3: Free-float distance search.
-
-### 4.2 Out-of-Area Deadhead Callout Charge
-- Pickups outside the operator’s core license radius automatically trigger a **£3.00 to £5.00 Call-out Surcharge** added to the passenger fare quote.
-- 100% of the surcharge is passed to the driver to cover empty miles.
-
----
-
-## 5. Ready-to-Implement Python Module for GetChum
-
-When you are ready to implement this in GetChum, this clean service class is ready to be integrated into `backend/app/services/fare.py`:
-
-```python
-"""
-smart_fare_engine.py - Long pickup compensation & dynamic fare decoupling
-"""
-from dataclasses import dataclass
-from typing import Optional
-
-LONG_PICKUP_THRESHOLD_KM = 5.0   # Beyond 5 km, driver approach compensation begins
-LONG_PICKUP_THRESHOLD_MIN = 8.0  # Beyond 8 mins, time compensation begins
-MAX_DISPATCH_RADIUS_KM = 12.0    # Hard cutoff: no automated dispatch beyond 12 km
-
-@dataclass
-class DecoupledFareQuote:
-    passenger_fare: float         # What passenger is charged
-    driver_net_earnings: float    # What driver receives in bank
-    platform_fee: float           # GetChum software commission
-    long_pickup_subsidy: float    # Extra deadhead compensation included for driver
-    approach_distance_km: float   # Driver-to-pickup distance
-    trip_distance_km: float       # Pickup-to-dropoff distance
-
-
-def calculate_decoupled_fare(
-    trip_distance_km: float,
-    trip_duration_min: float,
-    approach_distance_km: float,
-    approach_duration_min: float,
-    base_fare: float = 3.00,
-    per_km: float = 1.30,
-    per_min: float = 0.25,
-    platform_fee_rate: float = 0.08,  # 8% GetChum SaaS fee
-    surge_multiplier: float = 1.0,
-) -> DecoupledFareQuote:
-    """
-    Computes fair passenger price and driver earnings with long-pickup approach subsidy.
-    """
-    # 1. Base Trip Cost (Leg 2: Pickup -> Dropoff)
-    trip_subtotal = (base_fare + (trip_distance_km * per_km) + (trip_duration_min * per_min)) * surge_multiplier
-    passenger_fare = round(max(5.00, trip_subtotal), 2)
-
-    # 2. Long Pickup Subsidy (Leg 1: Approach)
-    long_pickup_subsidy = 0.0
-    if approach_distance_km > LONG_PICKUP_THRESHOLD_KM:
-        excess_km = approach_distance_km - LONG_PICKUP_THRESHOLD_KM
-        excess_min = max(0.0, approach_duration_min - LONG_PICKUP_THRESHOLD_MIN)
-        # Compensate fuel (£0.70/km) + time (£0.15/min) on excess approach
-        long_pickup_subsidy = round((excess_km * 0.70) + (excess_min * 0.15), 2)
-
-    # 3. Standard Platform Fee (8%)
-    standard_platform_fee = round(passenger_fare * platform_fee_rate, 2)
-
-    # 4. Driver Earnings Calculation
-    # If there is a long pickup subsidy, platform absorbs up to 100% of its fee to subsidize driver
-    if long_pickup_subsidy > 0:
-        # Platform reduces its fee to fund the deadhead approach
-        actual_platform_fee = max(0.0, standard_platform_fee - (long_pickup_subsidy * 0.5))
-        driver_net_earnings = round((passenger_fare - actual_platform_fee) + long_pickup_subsidy, 2)
-    else:
-        actual_platform_fee = standard_platform_fee
-        driver_net_earnings = round(passenger_fare - actual_platform_fee, 2)
-
-    return DecoupledFareQuote(
-        passenger_fare=passenger_fare,
-        driver_net_earnings=driver_net_earnings,
-        platform_fee=actual_platform_fee,
-        long_pickup_subsidy=long_pickup_subsidy,
-        approach_distance_km=approach_distance_km,
-        trip_distance_km=trip_distance_km,
-    )
+                           ┌─────────────────────────┐
+                           │   PASSENGER TRIP DEMAND │
+                           └────────────┬────────────┘
+                                        │
+                 ┌──────────────────────┴──────────────────────┐
+                 ▼                                             ▼
+     ┌────────────────────────┐                   ┌────────────────────────┐
+     │  ON-DEMAND ROAMING     │                   │   ADDA PARI ROTATION   │
+     │  (Full Vehicle Cabin)  │                   │    (Per-Seat Ticket)   │
+     └───────────┬────────────┘                   └───────────┬────────────┘
+                 │                                             │
+                 ▼                                             ▼
+       Standard Fare Matrix                         Manifest Seat Allocator
+       Base + (Km × Rate)                          Per-Seat Corridor Fare
+       + Waiting Fees                               + Ladies Zone Protection
 ```
 
 ---
 
-## 6. Summary Matrix for GetChum
+## 2. Multi-Modal Fare Matrix (PKR)
 
-| Scenario | Pickup Distance | Customer Charge | Driver Net Payout | Platform Cut |
-| :--- | :--- | :--- | :--- | :--- |
-| **Close Driver** | 1.2 km (~3 min) | £10.00 | £9.20 (92%) | £0.80 (8%) |
-| **Moderate Driver** | 4.5 km (~9 min) | £10.00 | £9.20 (92%) | £0.80 (8%) |
-| **Far Rural Driver** | 8.5 km (~16 min) | £10.00 + £2.00 rural surcharge | £11.50 (incl approach pay) | £0.50 (reduced fee) |
-| **Beyond Limit** | > 12.0 km | Reject / Manual Dispatch Only | N/A | N/A |
+Fares are calculated upfront in Pakistani Rupees (`Rs. / PKR`) based on road distance, expected transit duration, and vehicle tier:
+
+| Vehicle Class | Base Fare (Rs.) | Rate per Km (Rs./km) | Rate per Min (Rs./min) | Minimum Fare (Rs.) | Driver Take-Rate |
+|---|---|---|---|---|---|
+| **Bike (موٹر سائیکل)** | Rs. 50 | Rs. 22 | Rs. 2.0 | Rs. 80 | 90% (10% Watan Fee) |
+| **Auto Rickshaw (رکشہ)** | Rs. 90 | Rs. 38 | Rs. 3.0 | Rs. 140 | 90% (10% Watan Fee) |
+| **Qingqi (چنگچی فی سیٹ)** | Rs. 20 / seat | Rs. 6 / km | N/A | Rs. 30 / seat | **100% (0% Watan Fee)** |
+| **Car Mini (مہران / آلٹو)** | Rs. 160 | Rs. 55 | Rs. 4.5 | Rs. 220 | 90% (10% Watan Fee) |
+| **Car Comfort (اے سی کار)** | Rs. 260 | Rs. 75 | Rs. 6.0 | Rs. 350 | 90% (10% Watan Fee) |
+| **Wagon (ویگن سیٹ)** | Rs. 100 / seat | Rs. 14 / km | N/A | Rs. 150 / seat | **100% (0% Watan Fee)** |
+| **Coaster Bus (کوسٹر بس)** | Rs. 150 / seat | Rs. 10 / km | N/A | Rs. 200 / seat | **100% (0% Watan Fee)** |
+
+### Waiting Fee & Grace Period
+- **Complimentary Grace Period:** 3 minutes upon driver marking `arrived`.
+- **Waiting Rate:** Rs. 5.00 / minute thereafter.
+- **Cancellation Compensation:** If a passenger cancels after 3 minutes of driver dispatch, a flat **Rs. 75 to Rs. 150** cancellation charge is credited to the driver.
+
+---
+
+## 3. The Pari (پاری) FIFO Queue Algorithm
+
+The Pari queue digitizes traditional stand governance, eliminating verbal arguments between drivers and Munshis:
+
+```mermaid
+graph TD
+    A["Driver Arrives at Adda Geofence"] --> B{"Enrolled in Adda?"}
+    B -- Yes --> C["Auto-Prompt: Switch to Adda Pari Mode"]
+    B -- No --> D["Remain in Roaming Mode"]
+    C --> E["Driver Taps 'Check into Pari'"]
+    E --> F["Queue Position Assigned (#3, #2, #1)"]
+    F --> G["Current Turn (#1) Enters Active Bay"]
+    G --> H["Seat Manifest Opens for Booking"]
+    H --> I["Seats Filled (App + Walk-in POS)"]
+    I --> J["Driver Taps 'Depart Bay'"]
+    J --> K["Next Driver in Queue Promoted to #1"]
+```
+
+### Queue Rules & Integrity
+1. **FIFO Strict Ordering:** Drivers cannot jump the queue. The driver who checked in first gets the next departure bay.
+2. **Geofence Enforcement:** If a driver's GPS coordinates drift more than 400 meters away from the Adda without departing on an official manifest, they forfeit their turn and are pushed to the back of the queue.
+3. **Turn Skipping (باری چھوٹ جانا):** If a vehicle experiencing mechanical difficulty skips its turn, the Munshi can flag it on the Stand POS tablet with one tap, advancing the immediate next vehicle.
+
+---
+
+## 4. Seat Manifest & Ladies Zone Logic
+
+For shared corridor vehicles (Toyota HiAce 14-seaters, Qingqis, and Coaster buses), safety, cultural sensitivity, and cabin comfort are paramount.
+
+### Toyota HiAce Grand Cabin Grid (14 Seats)
+```
+[ DRIVER ]               [ SEAT 1: Front Window ]  [ SEAT 2: Front Middle ]
+───────────────────────────────────────────────────────────────────────────
+ROW 2 (LADIES ZONE)  ->  [ SEAT 3: Window ]   [ SEAT 4: Mid ]   [ SEAT 5: Aisle ]
+ROW 3 (GENERAL)      ->  [ SEAT 6: Window ]   [ SEAT 7: Mid ]   [ SEAT 8: Aisle ]
+ROW 4 (GENERAL)      ->  [ SEAT 9: Window ]   [ SEAT 10: Mid ]  [ SEAT 11: Aisle ]
+ROW 5 (BACK BENCH)   ->  [ SEAT 12: Win ]     [ SEAT 13: Mid ]  [ SEAT 14: Win ]
+```
+
+### Ladies Zone Rules
+- **Row 2** is reserved for unaccompanied female passengers or women traveling with small children.
+- If a male passenger attempts to book a seat in Row 2, the app alerts them:
+  > *"Row 2 is designated as a protected Ladies Zone. Please select general seating in Rows 3, 4, or 5."*
+- Counter Munshis can override allocation only when accommodating a unified family group.
+
+---
+
+## 5. Offline-Resilient Ticketing & Change Calculation
+
+Because network connectivity in crowded Pakistani bus terminals can fluctuate:
+1. **Stand POS Offline Sync:** The Munshi tablet maintains an indexed SQLite/IndexedDB store of passenger seat reservations and tickets. Even if 4G drops, the Munshi can issue tickets and verify boarding QR codes.
+2. **Automated Change Dispenser:** Munshis enter the amount tendered (e.g., Rs. 1,000 cash for a Rs. 350 ticket). The screen prominently displays in large green type:
+   > *"Give Change: Rs. 650"*
+   This prevents mathematical errors and accelerates passenger throughput during peak Eid and weekend rushes.

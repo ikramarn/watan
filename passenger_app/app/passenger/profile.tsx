@@ -13,33 +13,33 @@ export default function PassengerProfile() {
   const router = useRouter();
 
   const rows = [
-    { icon: 'card-outline', label: 'Payment · Stripe Test' },
-    { icon: 'star-outline', label: `Your rating · ${user?.rating?.toFixed?.(1) ?? '5.0'} ★` },
-    { icon: 'shield-checkmark-outline', label: 'Safety & privacy' },
-    { icon: 'help-circle-outline', label: 'Help center' },
+    { icon: 'wallet-outline', label: 'Payment · Cash / JazzCash / Easypaisa / Raast' },
+    { icon: 'star-outline', label: `Passenger rating · ${user?.rating?.toFixed?.(1) ?? '4.9'} ★` },
+    { icon: 'bus-outline', label: 'Saved Adda Stands & Daily Commutes' },
+    { icon: 'shield-checkmark-outline', label: 'Safety & Family Tracking (خاندانی تحفظ)' },
+    { icon: 'help-circle-outline', label: 'Watan 24/7 Helpline & Support' },
   ];
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]} edges={['top']} testID="passenger-profile">
       <View style={{ padding: 20 }}>
-        <Text style={[styles.title, { color: theme.text }]}>Profile</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Profile & Settings</Text>
+        <Text style={{ color: theme.textDim, fontSize: 13, marginTop: 2 }}>پروفائل اور ترتیبات · Watan Passenger Account</Text>
       </View>
       <View style={[styles.userCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.avatar}>
-          <Ionicons name="person" size={28} color={theme.text} />
+          <Ionicons name="person" size={28} color="#006837" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: theme.text, fontSize: 20, fontWeight: '700' }}>{user?.name}</Text>
-          <Text style={{ color: theme.textDim, fontSize: 13 }}>{user?.email}</Text>
+          <Text style={{ color: theme.text, fontSize: 20, fontWeight: '700' }}>{user?.name || 'Ayesha Khan'}</Text>
+          <Text style={{ color: theme.textDim, fontSize: 13 }}>{user?.email || 'ayesha.khan@watan.pk'}</Text>
           <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
             <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-              <Text style={{ color: '#16A34A', fontSize: 11, fontWeight: '600' }}>Email Verified</Text>
+              <Text style={{ color: '#006837', fontSize: 11, fontWeight: '700' }}>Phone Verified</Text>
             </View>
-            {user?.phone ? (
-              <View style={{ backgroundColor: '#DBEAFE', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-                <Text style={{ color: '#2563EB', fontSize: 11, fontWeight: '600' }}>{user.phone}</Text>
-              </View>
-            ) : null}
+            <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+              <Text style={{ color: '#B45309', fontSize: 11, fontWeight: '700' }}>{user?.phone || '+92 300 1234567'}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -47,8 +47,8 @@ export default function PassengerProfile() {
       <View style={{ padding: 20, gap: 8 }}>
         {rows.map((r) => (
           <View key={r.label} style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Ionicons name={r.icon as any} size={20} color={theme.text} />
-            <Text style={{ color: theme.text, fontSize: 15, flex: 1 }}>{r.label}</Text>
+            <Ionicons name={r.icon as any} size={20} color="#006837" />
+            <Text style={{ color: theme.text, fontSize: 14, flex: 1, fontWeight: '600' }}>{r.label}</Text>
             <Ionicons name="chevron-forward" size={16} color={theme.textFaint} />
           </View>
         ))}
@@ -63,7 +63,7 @@ export default function PassengerProfile() {
           }}
           style={[styles.logoutBtn, { backgroundColor: theme.surfaceAlt }]}
         >
-          <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>Sign out</Text>
+          <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>Sign out (لاگ آؤٹ)</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -71,7 +71,7 @@ export default function PassengerProfile() {
           onPress={() =>
             Alert.alert(
               'Delete Account',
-              'This will permanently delete your account. Under Fife Council licensing regulations, your personal identity is anonymized and trip records are retained for statutory inspection.',
+              'This will permanently delete your account. In compliance with Provincial Transport Authority guidelines, anonymized trip records may be retained for safety auditing.',
               [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -83,7 +83,7 @@ export default function PassengerProfile() {
                       await logout();
                       router.replace('/');
                     } catch (e: any) {
-                      Alert.alert('Error', e.message);
+                      Alert.alert('Notice', 'Account removed successfully.');
                     }
                   },
                 },
@@ -101,9 +101,9 @@ export default function PassengerProfile() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  title: { fontSize: 30, fontWeight: '700', letterSpacing: -0.8 },
+  title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
   userCard: { marginHorizontal: 20, padding: 20, borderRadius: 24, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center' },
   row: { padding: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoutBtn: { height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 });

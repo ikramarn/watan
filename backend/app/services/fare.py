@@ -163,3 +163,48 @@ def compute_fare(distance_km: float, ride_type: str = "car_mini") -> Dict[str, A
         "details": est,
     }
 
+
+def compute_multimodal_fare(
+    vehicle_type: str,
+    distance_km: float,
+    duration_min: float = 0.0,
+    is_adda_trip: bool = False,
+    surge: float = 1.0,
+) -> Dict[str, Any]:
+    """
+    Computes upfront multi-modal fare in PKR and enforces Watan's core monetization rule:
+    - Adda Pari drivers: 0% platform commission (100% kept by driver, Adda pays weekly flat SaaS)
+    - Independent Roaming drivers: 10% platform commission
+    """
+    if duration_min <= 0.0:
+        duration_min = max(2.0, distance_km * 2.2)
+
+    est = estimate_fare(distance_km, duration_min, vehicle_type, surge=surge)
+    fare_pkr = est["estimated_fare"]
+
+    if is_adda_trip:
+        platform_fee_pkr = 0.0
+        driver_net_pkr = fare_pkr
+        commission_rate = ADDA_DRIVER_COMMISSION_RATE
+    else:
+        platform_fee_pkr = round(fare_pkr * INDEPENDENT_COMMISSION_RATE, 2)
+        driver_net_pkr = round(fare_pkr - platform_fee_pkr, 2)
+        commission_rate = INDEPENDENT_COMMISSION_RATE
+
+    return {
+        "currency": CURRENCY,
+        "currency_symbol": CURRENCY_SYMBOL,
+        "vehicle_type": vehicle_type,
+        "fare_pkr": fare_pkr,
+        "platform_fee_pkr": platform_fee_pkr,
+        "driver_net_pkr": driver_net_pkr,
+        "is_adda_trip": is_adda_trip,
+        "commission_rate": commission_rate,
+        "seats": est["seats"],
+        "details": est,
+    }
+
+
+MULTIMODAL_RATES = FARE_CONFIG
+
+

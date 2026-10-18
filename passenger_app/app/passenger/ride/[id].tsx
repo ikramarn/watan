@@ -127,7 +127,7 @@ export default function RideActive() {
     accepted: `${ride.driver_name} in ${ride.vehicle_make || 'Sedan'} (${ride.vehicle_plate || 'CAB-001'})`,
     arrived: 'Your driver is waiting at the designated pickup point',
     in_progress: 'Sit back and enjoy your comfortable ride',
-    completed: `Final fare: £${(ride.fare || 0).toFixed(2)}`,
+    completed: `Final fare: Rs. ${(ride.fare || 0).toLocaleString()}`,
     cancelled: isCancelledByDispatcher
       ? (isDistanceTooFar
           ? 'This pickup or route is currently outside our immediate vehicle coverage.'
@@ -142,7 +142,7 @@ export default function RideActive() {
     try {
       const res = await api<any>(`/rides/${id}/cancel`, { body: {} });
       if (res && res.cancellation_fee > 0) {
-        const feeMsg = `A standard £${res.cancellation_fee.toFixed(2)} cancellation fee applies for driver dispatch.`;
+        const feeMsg = `A standard Rs. ${res.cancellation_fee} cancellation fee applies for driver dispatch.`;
         if (Platform.OS === 'web') {
           window.alert(`Cancellation Fee\n${feeMsg}`);
         } else {
@@ -357,7 +357,7 @@ export default function RideActive() {
             >
               {(secondsRemaining ?? 1) > 0
                 ? 'Your driver is waiting at the pickup point. 2-minute complimentary grace period remaining.'
-                : 'Complimentary grace period ended. A standard waiting fee of £0.25/min is now active.'}
+                : 'Complimentary grace period ended. A standard waiting fee of Rs. 5/min is now active.'}
             </Text>
           </View>
         )}
@@ -370,13 +370,13 @@ export default function RideActive() {
             <View style={{ flex: 1 }}>
               <Text style={{ color: theme.text, fontSize: 16, fontWeight: '700' }}>{ride.driver_name}</Text>
               <Text style={{ color: theme.textDim, fontSize: 12 }}>
-                ★ {(ride.driver_rating ?? 5.0).toFixed(1)} · {ride.vehicle_make || 'Saloon'} ({ride.vehicle_plate || 'CAB-001'})
+                ★ {(ride.driver_rating ?? 4.9).toFixed(1)} · {ride.vehicle_make || 'Toyota HiAce'} ({ride.vehicle_plate || 'RPL-4921'})
               </Text>
               {ride.council_name && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
                   <Ionicons name="shield-checkmark" size={12} color={theme.success} />
                   <Text style={{ color: theme.textDim, fontSize: 11 }}>
-                    {ride.council_name} {ride.phv_badge_number ? `· Badge #${ride.phv_badge_number}` : ''}
+                    {ride.council_name} {ride.phv_badge_number ? `· Permit #${ride.phv_badge_number}` : ''}
                   </Text>
                 </View>
               )}
@@ -391,12 +391,12 @@ export default function RideActive() {
           </View>
         )}
 
-        {/* UK SaaS Regulatory Disclosure */}
+        {/* Watan Regulatory Disclosure */}
         {ride.driver_name && (
           <View style={{ marginTop: 8, paddingHorizontal: 4 }}>
             <Text style={{ color: theme.textFaint, fontSize: 10, lineHeight: 14 }}>
-              Transport contract is directly with the licensed operator ({ride.driver_name}
-              {ride.operator_license_number ? `, Lic #${ride.operator_license_number}` : ''}). Technology platform provided by GetChum.
+              Transport contract is directly with the licensed driver ({ride.driver_name}
+              {ride.operator_license_number ? `, Lic #${ride.operator_license_number}` : ''}). Technology platform provided by Watan (وطن).
             </Text>
           </View>
         )}
@@ -404,9 +404,9 @@ export default function RideActive() {
         {/* Payment & Tip Section for Completed Unpaid Ride */}
         {ride.status === 'completed' && ride.payment_status !== 'paid' && (
           <View style={{ marginTop: 20 }}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Add a Driver Tip</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Add a Driver Tip (انعام)</Text>
             <View style={styles.tipRow}>
-              {[0, 1, 2, 3, 5].map((tipVal) => (
+              {[0, 50, 100, 200, 500].map((tipVal) => (
                 <TouchableOpacity
                   key={tipVal}
                   onPress={() => setSelectedTip(tipVal)}
@@ -419,7 +419,7 @@ export default function RideActive() {
                   ]}
                 >
                   <Text style={{ color: selectedTip === tipVal ? theme.ctaText : theme.text, fontWeight: '700' }}>
-                    {tipVal === 0 ? 'No Tip' : `+£${tipVal}`}
+                    {tipVal === 0 ? 'No Tip' : `+Rs. ${tipVal}`}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -428,27 +428,27 @@ export default function RideActive() {
             <View style={[styles.fareBreakdown, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
               <View style={styles.breakdownRow}>
                 <Text style={{ color: theme.textDim }}>Trip Fare ({ride.distance_km?.toFixed(1)} km)</Text>
-                <Text style={{ color: theme.text, fontWeight: '600' }}>£{(ride.fare || 0).toFixed(2)}</Text>
+                <Text style={{ color: theme.text, fontWeight: '700' }}>Rs. {(ride.fare || 0).toLocaleString()}</Text>
               </View>
               {selectedTip > 0 && (
                 <View style={styles.breakdownRow}>
                   <Text style={{ color: theme.textDim }}>Driver Tip</Text>
-                  <Text style={{ color: theme.success, fontWeight: '600' }}>+£{selectedTip.toFixed(2)}</Text>
+                  <Text style={{ color: theme.success, fontWeight: '700' }}>+Rs. {selectedTip.toLocaleString()}</Text>
                 </View>
               )}
               <View style={[styles.breakdownRow, { borderTopWidth: 1, borderColor: theme.border, paddingTop: 8, marginTop: 4 }]}>
-                <Text style={{ color: theme.text, fontWeight: '700' }}>Total Amount</Text>
-                <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}>£{totalToPay.toFixed(2)}</Text>
+                <Text style={{ color: theme.text, fontWeight: '800' }}>Total Amount</Text>
+                <Text style={{ color: '#006837', fontSize: 18, fontWeight: '900' }}>Rs. {totalToPay.toLocaleString()}</Text>
               </View>
             </View>
 
             <Button
               testID="pay-btn"
-              title={`Pay £${totalToPay.toFixed(2)} Securely`}
+              title={`Pay Rs. ${totalToPay.toLocaleString()} (Cash / JazzCash)`}
               onPress={payNative}
               loading={paying}
               theme={theme}
-              icon={<Ionicons name="card" size={18} color={theme.ctaText} />}
+              icon={<Ionicons name="wallet" size={18} color={theme.ctaText} />}
             />
           </View>
         )}
@@ -532,7 +532,7 @@ export default function RideActive() {
               >
                 {isCancelledByDispatcher
                   ? (isDistanceTooFar
-                      ? 'We were unable to assign a driver because this route distance is currently outside our immediate vehicle service area in Fife & Edinburgh.'
+                      ? 'We were unable to assign a driver because this route distance is currently outside our immediate vehicle service area.'
                       : (ride.cancelled_reason && !ride.cancelled_reason.toLowerCase().includes('control room')
                           ? ride.cancelled_reason
                           : 'All licensed drivers in your area are currently committed to other trips. Please try requesting again shortly.'))
@@ -540,15 +540,15 @@ export default function RideActive() {
               </Text>
 
               {ride.cancellation_fee > 0 && (
-                <Text style={{ color: '#991B1B', fontSize: 12, fontWeight: '600', marginTop: 8 }}>
-                  Cancellation fee applied: £{ride.cancellation_fee.toFixed(2)}
+                <Text style={{ color: '#991B1B', fontSize: 12, fontWeight: '700', marginTop: 8 }}>
+                  Cancellation fee applied: Rs. {ride.cancellation_fee}
                 </Text>
               )}
             </View>
 
             <TouchableOpacity
               style={{
-                backgroundColor: '#FACC15',
+                backgroundColor: '#006837',
                 height: 52,
                 borderRadius: 16,
                 alignItems: 'center',
@@ -559,9 +559,9 @@ export default function RideActive() {
               onPress={() => router.replace('/passenger/home')}
               activeOpacity={0.85}
             >
-              <Ionicons name="search" size={18} color="#0F172A" />
-              <Text style={{ color: '#0F172A', fontSize: 15, fontWeight: '800' }}>
-                Search for Available Drivers
+              <Ionicons name="search" size={18} color="#FFFFFF" />
+              <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>
+                Search for Available Rides / Addas
               </Text>
             </TouchableOpacity>
           </View>

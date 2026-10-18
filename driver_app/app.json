@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "GetChum Driver",
-    "slug": "getchum-driver",
+    "name": "Watan Driver (ڈرائیور)",
+    "slug": "watan-driver",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "getchum-driver",
+    "scheme": "watan-driver",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "uk.co.getchum.driver",
+      "bundleIdentifier": "pk.com.watan.driver",
       "config": {
         "googleMapsApiKey": "YOUR_IOS_MAPS_KEY"
       },
@@ -32,7 +32,7 @@
       }
     },
     "android": {
-      "package": "uk.co.getchum.driver",
+      "package": "pk.com.watan.driver",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000000"

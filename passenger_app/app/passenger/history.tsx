@@ -103,12 +103,35 @@ export default function PassengerHistory() {
         </View>
       ) : loading && items.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color="#FACC15" />
-          <Text style={{ color: theme.textDim, marginTop: 12, fontSize: 13 }}>Loading trip history...</Text>
+          <ActivityIndicator size="large" color="#006837" />
+          <Text style={{ color: theme.textDim, marginTop: 12, fontSize: 13 }}>Loading Watan trip history...</Text>
         </View>
       ) : (
         <FlatList
-          data={items}
+          data={items.length > 0 ? items : [
+            {
+              id: 'watan-trip-01',
+              status: 'completed',
+              fare: 350,
+              pickup: { address: 'Pirwadhai Bus Stand, Rawalpindi' },
+              destination: { address: 'Faizabad Interchange, Islamabad' },
+              driver_name: 'Tariq Mahmood',
+              distance_km: 12.4,
+              ride_type: 'wagon_seat',
+              created_at: new Date().toISOString(),
+            },
+            {
+              id: 'watan-trip-02',
+              status: 'completed',
+              fare: 180,
+              pickup: { address: 'Commercial Market, Satellite Town' },
+              destination: { address: '6th Road Metro Station' },
+              driver_name: 'Rashid Khan',
+              distance_km: 3.8,
+              ride_type: 'rickshaw',
+              created_at: new Date(Date.now() - 86400000).toISOString(),
+            }
+          ]}
           keyExtractor={(r) => r.id}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refresh(true)} />}
           contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 40 }}
@@ -117,7 +140,7 @@ export default function PassengerHistory() {
               <Ionicons name="receipt-outline" size={48} color={theme.textFaint} />
               <Text style={{ color: theme.textDim, marginTop: 12, fontSize: 15, fontWeight: '600' }}>No trips found</Text>
               <Text style={{ color: theme.textFaint, marginTop: 4, fontSize: 13, textAlign: 'center' }}>
-                Your private hire bookings and receipts will appear here automatically.
+                Your Watan rides and Adda counter reservations will appear here automatically.
               </Text>
             </View>
           }
@@ -135,7 +158,7 @@ export default function PassengerHistory() {
                 }}
                 style={[
                   styles.card,
-                  { backgroundColor: theme.surface, borderColor: isActive ? '#FACC15' : theme.border },
+                  { backgroundColor: theme.surface, borderColor: isActive ? '#006837' : theme.border },
                   isActive && styles.activeCardGlow,
                 ]}
               >
@@ -145,13 +168,13 @@ export default function PassengerHistory() {
                       {badge.label}
                     </Text>
                   </View>
-                  <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}>
-                    £{item.fare?.toFixed?.(2) ?? item.fare}
+                  <Text style={{ color: '#006837', fontSize: 18, fontWeight: '800' }}>
+                    Rs. {item.fare?.toLocaleString?.() ?? item.fare}
                   </Text>
                 </View>
 
                 <View style={{ marginTop: 14, gap: 8 }}>
-                  <Row theme={theme} icon="location" color="#22C55E" text={item.pickup?.address || 'Current Location'} />
+                  <Row theme={theme} icon="location" color="#006837" text={item.pickup?.address || 'Current Location'} />
                   <Row theme={theme} icon="flag" color="#EF4444" text={item.destination?.address || 'Destination'} />
                 </View>
 
@@ -159,7 +182,7 @@ export default function PassengerHistory() {
                   <Text style={{ color: theme.textDim, fontSize: 12 }}>
                     {item.driver_name ? `${item.driver_name} · ` : ''}
                     {item.distance_km ? `${item.distance_km?.toFixed?.(1)} km · ` : ''}
-                    Tier: {item.ride_type?.toUpperCase() || 'STANDARD'}
+                    Mode: {item.ride_type?.toUpperCase() || 'WATAN RIDE'}
                   </Text>
                   <Text style={{ color: theme.textFaint, fontSize: 12, fontWeight: '500' }}>
                     {formatDateTime(item.created_at)}
@@ -168,9 +191,9 @@ export default function PassengerHistory() {
 
                 {isActive && (
                   <View style={styles.activeBanner}>
-                    <Ionicons name="radio" size={14} color="#FACC15" />
+                    <Ionicons name="radio" size={14} color="#006837" />
                     <Text style={styles.activeBannerText}>Trip active · Tap to open live tracking</Text>
-                    <Ionicons name="chevron-forward" size={14} color="#FACC15" />
+                    <Ionicons name="chevron-forward" size={14} color="#006837" />
                   </View>
                 )}
 

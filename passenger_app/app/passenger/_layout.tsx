@@ -20,37 +20,37 @@ export default function PassengerLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.ctaBg,
+        tabBarActiveTintColor: theme.accent,
         tabBarInactiveTintColor: theme.textDim,
         tabBarStyle: {
           backgroundColor: theme.surface,
           borderTopColor: theme.border,
-          height: 80,
+          height: 75,
           paddingTop: 8,
-          paddingBottom: 20,
+          paddingBottom: 16,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Ride',
-          tabBarIcon: ({ color, size }) => <Ionicons name="navigate" size={size} color={color} />,
+          title: 'Watan (سواری)',
+          tabBarIcon: ({ color, size }) => <Ionicons name="car-sport" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
-          title: 'Trips',
+          title: 'Trips (سفر)',
           tabBarIcon: ({ color, size }) => <Ionicons name="receipt-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} />,
+          title: 'Wallet (والٹ)',
+          tabBarIcon: ({ color, size }) => <Ionicons name="wallet-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen name="ride/[id]" options={{ href: null }} />

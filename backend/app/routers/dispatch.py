@@ -1048,12 +1048,12 @@ async def export_fife_statutory_audit(
     dispatcher: dict = Depends(require_role("dispatcher")),
     start: Optional[str] = Query(default=None, description="Start date filter (YYYY-MM-DD or ISO)"),
     end: Optional[str] = Query(default=None, description="End date filter (YYYY-MM-DD or ISO)"),
-    format: str = Query(default="csv", regex="^(csv|json)$"),
+    format: str = Query(default="csv", pattern="^(csv|json)$"),
 ):
     """
-    Statutory Inspection Export complying with the Civic Government (Scotland) Act 1982
-    and The Licensing of Booking Offices Order 2009.
-    Exports comprehensive booking audit logs required during Fife Council licensing inspections.
+    Statutory Inspection Export complying with Provincial Transport Authority
+    regulations and Municipal Adda Stand Licensing rules.
+    Exports comprehensive booking audit logs required during statutory inspections.
     """
     query: dict = {}
     date_filter: dict = {}

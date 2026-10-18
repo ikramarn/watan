@@ -188,13 +188,29 @@ class ValidateTicketIn(BaseModel):
 
 
 class DriverKycSubmitIn(BaseModel):
-    cnic: str = Field(min_length=13, max_length=20)
-    license_number: str = Field(min_length=4, max_length=50)
-    license_expiry: str = Field(min_length=4, max_length=20)
+    cnic: Optional[str] = Field(default="", max_length=25)
+    license_number: str = Field(min_length=2, max_length=50)
+    license_expiry: str = Field(min_length=2, max_length=20)
     city_traffic_police: Optional[str] = Field(default="", max_length=100)
+    council_name: Optional[str] = Field(default="Transport Authority", max_length=100)
+    operator_license_number: Optional[str] = Field(default="", max_length=50)
+    operator_license_expiry: Optional[str] = Field(default="", max_length=20)
+    phv_badge_number: Optional[str] = Field(default="", max_length=50)
+    badge_expiry: Optional[str] = Field(default="", max_length=20)
+    insurance_policy: Optional[str] = Field(default="", max_length=80)
+    insurance_expiry: Optional[str] = Field(default="", max_length=20)
+    mot_certificate: Optional[str] = Field(default="", max_length=80)
+    mot_expiry: Optional[str] = Field(default="", max_length=20)
+    phv_licence: Optional[str] = Field(default="", max_length=80)
+    phv_licence_expiry: Optional[str] = Field(default="", max_length=20)
+    v5c_logbook: Optional[str] = Field(default="", max_length=80)
+    dvla_check_code: Optional[str] = Field(default="", max_length=80)
+    vehicle_make: Optional[str] = Field(default="", max_length=80)
+    vehicle_model: Optional[str] = Field(default="", max_length=80)
     vehicle_plate: Optional[str] = Field(default="", max_length=30)
-    vehicle_year: int = Field(ge=2000, le=2030)
-    vehicle_color: str = Field(min_length=2, max_length=30)
+    vehicle_year: Optional[int] = Field(default=2020, ge=1990, le=2035)
+    vehicle_colour: Optional[str] = Field(default="White", max_length=30)
+    vehicle_type: Optional[RideType] = "car_mini"
     bank_iban_or_raast_alias: Optional[str] = Field(default="", max_length=40)
     document_urls: Optional[List[str]] = Field(default_factory=list)
 
@@ -210,3 +226,64 @@ class WalletTopupIn(BaseModel):
     amount_pkr: float = Field(gt=0, le=50000)
     method: Literal["raast", "jazzcash", "easypaisa", "counter_cash"]
     account_number: Optional[str] = ""
+
+
+class DriverPayoutIn(BaseModel):
+    amount: float = Field(gt=0)
+    bank_iban: Optional[str] = None
+    raast_id: Optional[str] = None
+
+
+class EmailOtpRequestIn(BaseModel):
+    email: EmailStr
+
+
+class EmailOtpVerifyIn(BaseModel):
+    email: EmailStr
+    code: str = Field(min_length=4, max_length=10)
+
+
+class PhoneOtpRequestIn(BaseModel):
+    phone: str = Field(min_length=7, max_length=30)
+
+
+class PhoneOtpVerifyIn(BaseModel):
+    phone: str = Field(min_length=7, max_length=30)
+    code: str = Field(min_length=4, max_length=10)
+
+
+class DispatcherCreateIn(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    name: str = Field(min_length=2, max_length=80)
+
+
+class ForceCancelIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    reason: Optional[str] = Field(default="", max_length=300)
+
+
+class ManualAssignIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    driver_id: str = Field(min_length=6, max_length=80)
+
+
+class ReassignIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    new_driver_id: str = Field(min_length=6, max_length=80)
+    reason: Optional[str] = Field(default="", max_length=300)
+
+
+class PaymentIntentCreateIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    tip_amount: Optional[float] = 0.0
+
+
+class PaymentCaptureIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    payment_intent_id: Optional[str] = None
+
+
+class TipIn(BaseModel):
+    amount: float = Field(ge=0)
+

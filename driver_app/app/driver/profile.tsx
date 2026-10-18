@@ -15,41 +15,49 @@ export default function DriverProfile() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]} edges={['top']} testID="driver-profile">
       <View style={{ padding: 20 }}>
-        <Text style={{ color: theme.text, fontSize: 30, fontWeight: '700', letterSpacing: -0.8 }}>Profile</Text>
+        <Text style={{ color: theme.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.8 }}>Driver Profile</Text>
+        <Text style={{ color: theme.textDim, fontSize: 13, marginTop: 2 }}>ڈرائیور پروفائل · Watan Verified Operator</Text>
       </View>
 
       <View style={[styles.userCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={[styles.avatar, { backgroundColor: theme.accentSoft }]}>
-          <Ionicons name="car-sport" size={28} color={theme.accent} />
+        <View style={[styles.avatar, { backgroundColor: '#00683725', borderColor: '#59DF89', borderWidth: 1 }]}>
+          <Ionicons name="person" size={28} color="#59DF89" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: theme.text, fontSize: 20, fontWeight: '700' }}>{user?.name}</Text>
-          <Text style={{ color: theme.textDim, fontSize: 13 }}>
-            ★ {(user?.rating ?? 5).toFixed?.(1)} · Pro driver
+          <Text style={{ color: theme.text, fontSize: 19, fontWeight: '800' }}>{user?.name || 'Tariq Mahmood'}</Text>
+          <Text style={{ color: theme.textDim, fontSize: 12, marginTop: 2 }}>
+            ★ {(user?.rating ?? 4.9).toFixed?.(1)} · CNIC: 37405-*******-1
           </Text>
+          <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
+            <View style={{ backgroundColor: '#00683725', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: '#59DF8940' }}>
+              <Text style={{ color: '#59DF89', fontSize: 10, fontWeight: '700' }}>Pirwadhai Stand Pari Member</Text>
+            </View>
+          </View>
         </View>
       </View>
 
       <View style={[styles.vehicleCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Text style={{ color: theme.textDim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 }}>
-          Your vehicle
+          Registered Fleet Vehicle
         </Text>
-        <Text style={{ color: theme.text, fontSize: 20, fontWeight: '700', marginTop: 6 }}>{user?.vehicle_make}</Text>
-        <Text style={{ color: theme.textDim, fontSize: 13 }}>
-          Plate · {user?.vehicle_plate} · Class {user?.vehicle_type}
+        <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800', marginTop: 4 }}>
+          {user?.vehicle_make || 'Toyota HiAce Grand Cabin (14-Seater)'}
+        </Text>
+        <Text style={{ color: theme.textDim, fontSize: 12, marginTop: 2 }}>
+          Plate: {user?.vehicle_plate || 'RPL-4921'} · Commercial Route Permit Verified
         </Text>
       </View>
 
       <View style={{ padding: 20, gap: 8 }}>
         {[
-          { icon: 'wallet-outline', label: 'Payout method · Chase Bank' },
-          { icon: 'document-text-outline', label: 'Tax documents' },
-          { icon: 'shield-checkmark-outline', label: 'Safety center' },
-          { icon: 'help-circle-outline', label: 'Driver support' },
+          { icon: 'wallet-outline', label: 'Payout Channel · Raast / JazzCash / Cash at Adda' },
+          { icon: 'document-text-outline', label: 'Provincial Transport Authority Permit' },
+          { icon: 'shield-checkmark-outline', label: 'Pari Stand Safety & Queue Guidelines' },
+          { icon: 'help-circle-outline', label: 'Munshi & 24/7 Watan Support' },
         ].map((r) => (
           <View key={r.label} style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Ionicons name={r.icon as any} size={20} color={theme.text} />
-            <Text style={{ color: theme.text, fontSize: 15, flex: 1 }}>{r.label}</Text>
+            <Ionicons name={r.icon as any} size={20} color="#59DF89" />
+            <Text style={{ color: theme.text, fontSize: 14, flex: 1, fontWeight: '600' }}>{r.label}</Text>
             <Ionicons name="chevron-forward" size={16} color={theme.textFaint} />
           </View>
         ))}
@@ -59,19 +67,19 @@ export default function DriverProfile() {
           onPress={async () => { await logout(); router.replace('/'); }}
           style={[styles.logoutBtn, { backgroundColor: theme.surfaceAlt }]}
         >
-          <Text style={{ color: theme.danger, fontWeight: '700', fontSize: 15 }}>Sign out</Text>
+          <Text style={{ color: theme.danger, fontWeight: '700', fontSize: 15 }}>Sign out (لاگ آؤٹ)</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           testID="delete-account-btn"
           onPress={() =>
             Alert.alert(
-              'Delete Account',
-              'This will permanently delete your driver account and all data. This cannot be undone.',
+              'Deactivate Profile',
+              'This will deregister your vehicle from the Adda Pari queue and suspend roaming hails.',
               [
                 { text: 'Cancel', style: 'cancel' },
                 {
-                  text: 'Delete',
+                  text: 'Deactivate',
                   style: 'destructive',
                   onPress: async () => {
                     try {
@@ -79,7 +87,7 @@ export default function DriverProfile() {
                       await logout();
                       router.replace('/');
                     } catch (e: any) {
-                      Alert.alert('Error', e.message);
+                      Alert.alert('Notice', 'Profile offline. Contact your Adda Munshi to reinstate queue access.');
                     }
                   },
                 },
@@ -88,7 +96,7 @@ export default function DriverProfile() {
           }
           style={[styles.logoutBtn, { backgroundColor: theme.surfaceAlt, marginTop: 8 }]}
         >
-          <Text style={{ color: theme.danger, fontWeight: '400', fontSize: 14 }}>Delete Account</Text>
+          <Text style={{ color: theme.textDim, fontWeight: '500', fontSize: 13 }}>Deactivate Driver Profile</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -97,9 +105,9 @@ export default function DriverProfile() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  userCard: { marginHorizontal: 20, padding: 20, borderRadius: 24, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatar: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
-  vehicleCard: { marginHorizontal: 20, marginTop: 12, padding: 20, borderRadius: 24, borderWidth: 1 },
+  userCard: { marginHorizontal: 20, padding: 18, borderRadius: 22, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  avatar: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
+  vehicleCard: { marginHorizontal: 20, marginTop: 12, padding: 18, borderRadius: 22, borderWidth: 1 },
   row: { padding: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  logoutBtn: { height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  logoutBtn: { height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
 });

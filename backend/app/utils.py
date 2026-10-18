@@ -1,6 +1,11 @@
 import math
+import uuid
 from datetime import datetime, timezone
 from typing import Any
+
+
+def new_id() -> str:
+    return uuid.uuid4().hex
 
 
 def now_utc() -> datetime:
