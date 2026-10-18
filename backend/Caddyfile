@@ -1,0 +1,26 @@
+# Production Caddyfile for GetChum (getchum.co.uk)
+
+# 1. API & Realtime WebSockets Gateway
+api.getchum.co.uk {
+    reverse_proxy api:8000
+}
+
+# 2. Chum Dispatch · Control Room Web App
+admin.getchum.co.uk {
+    root * /srv/control_room
+    file_server
+    try_files {path} /index.html
+}
+
+# 3. Main Customer Domain: GetChum Passenger Web Booking & Portal
+getchum.co.uk, www.getchum.co.uk {
+    root * /srv/passenger_web
+    file_server
+    try_files {path} /index.html
+}
+
+# 4. Direct IP Fallback
+:80 {
+    reverse_proxy api:8000
+}
+

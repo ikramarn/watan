@@ -1,0 +1,24 @@
+Taxi backend stack is deployed.
+
+Namespace: {{ .Release.Namespace }}
+API service: {{ include "taxi.fullname" . }}-api
+{{- if .Values.controlRoom.enabled }}
+Control Room dashboard service: {{ include "taxi.fullname" . }}-control-room
+{{- end }}
+
+Get service details:
+  kubectl -n {{ .Release.Namespace }} get svc {{ include "taxi.fullname" . }}-api
+{{- if .Values.controlRoom.enabled }}
+  kubectl -n {{ .Release.Namespace }} get svc {{ include "taxi.fullname" . }}-control-room
+{{- end }}
+
+If NodePort is used:
+  Backend API:      http://<your-host-ip>:{{ .Values.api.service.nodePort }}
+{{- if .Values.controlRoom.enabled }}
+  Control Room UI:  http://<your-host-ip>:{{ .Values.controlRoom.service.nodePort }}
+
+Note: the control_room image was built with VITE_API_BASE_URL baked in at
+build time (Vite build-time env var). If your host IP differs from what
+was used at build time, rebuild the control_room image with the correct
+--build-arg VITE_API_BASE_URL before deploying.
+{{- end }}

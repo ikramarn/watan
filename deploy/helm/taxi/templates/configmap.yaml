@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "taxi.fullname" . }}-env
+  labels:
+    {{- include "taxi.labels" . | nindent 4 }}
+data:
+  APP_ENV: {{ .Values.env.appEnv | quote }}
+  DB_NAME: {{ .Values.env.dbName | quote }}
+  MONGO_URL: {{ printf "mongodb://%s-mongodb:27017" (include "taxi.fullname" .) | quote }}
+  REDIS_URL: {{ printf "redis://%s-redis:6379/0" (include "taxi.fullname" .) | quote }}
+  CORS_ORIGINS: {{ .Values.env.corsOriginsCsv | quote }}
+  SENTRY_DSN: {{ .Values.env.sentryDsn | quote }}
+  RATE_LIMIT_WINDOW_SEC: {{ .Values.env.rateLimitWindowSec | quote }}
+  RATE_LIMIT_MAX_REQUESTS: {{ .Values.env.rateLimitMaxRequests | quote }}

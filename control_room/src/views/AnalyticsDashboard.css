@@ -1,0 +1,83 @@
+.analytics-dashboard {
+  max-width: 960px;
+  margin: 2rem auto;
+  text-align: left;
+}
+
+.analytics-dashboard h2 {
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.analytics-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.analytics-filters label {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.analytics-filters input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+}
+
+.analytics-filters button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.analytics-filters button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.analytics-section {
+  margin-bottom: 2rem;
+}
+
+.analytics-section h3 {
+  font-size: 0.95rem;
+  color: var(--text-h);
+  margin-bottom: 0.5rem;
+}
+
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.analytics-table th,
+.analytics-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.analytics-table th {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.analytics-error {
+  margin: 0 0 1rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+}

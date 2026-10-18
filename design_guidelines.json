@@ -1,0 +1,108 @@
+{
+  "theme": "Hybrid Platform (Light Mode for Passenger, Dark Mode for Driver)",
+  "archetype": "Archetype 4 (Swiss & High-Contrast) + Archetype 2 (Performance Pro)",
+  "typography": {
+    "headings": {
+      "font": "Outfit",
+      "weights": ["600", "700"],
+      "usage": "Use for primary numbers (earnings), H1, H2. Must use tracking-tight."
+    },
+    "body": {
+      "font": "Manrope",
+      "weights": ["400", "500", "600"],
+      "usage": "Use for all UI text, labels, and bottom sheet content."
+    },
+    "forbidden_fonts": ["Inter", "Roboto", "Open Sans"]
+  },
+  "colors": {
+    "passenger_app": {
+      "mode": "light",
+      "background": "#FDFDFD",
+      "surface": "#FFFFFF",
+      "primary_text": "#0F172A",
+      "secondary_text": "#64748B",
+      "cta_background": "#0F172A",
+      "cta_text": "#FFFFFF",
+      "accent": "#2563EB",
+      "success": "#10B981",
+      "border": "#E2E8F0"
+    },
+    "driver_app": {
+      "mode": "dark",
+      "background": "#09090B",
+      "surface": "#18181B",
+      "primary_text": "#FAFAFA",
+      "secondary_text": "#A1A1AA",
+      "cta_background": "#FACC15",
+      "cta_text": "#09090B",
+      "accent": "#FACC15",
+      "success": "#4ADE80",
+      "border": "#27272A"
+    }
+  },
+  "layout": {
+    "global_container": "max-w-md mx-auto h-[100dvh] relative overflow-hidden bg-background sm:shadow-2xl sm:ring-1 sm:ring-border/50 sm:rounded-[2.5rem] sm:my-8",
+    "map_layer": "absolute inset-0 z-0 w-full h-full bg-zinc-100 dark:bg-zinc-900",
+    "bottom_sheet": {
+      "container": "absolute bottom-0 left-0 right-0 z-40 bg-surface rounded-t-[2rem] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] p-6 pt-4 pb-8",
+      "drag_handle": "w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6"
+    },
+    "bento_grid": "grid grid-cols-2 gap-3"
+  },
+  "components": {
+    "buttons": {
+      "primary": "w-full rounded-2xl h-14 font-semibold text-lg transition-transform active:scale-95 flex items-center justify-center gap-2",
+      "secondary": "w-full rounded-2xl h-14 font-medium text-base bg-zinc-100 dark:bg-zinc-800 text-primary_text transition-transform active:scale-95"
+    },
+    "inputs": {
+      "text": "bg-zinc-100 dark:bg-zinc-800 border-0 h-14 rounded-2xl px-4 text-base focus-visible:ring-2 focus-visible:ring-accent w-full"
+    },
+    "cards": {
+      "default": "rounded-3xl border border-border bg-surface p-5",
+      "earnings_widget": "rounded-3xl bg-surface p-5 border border-border flex flex-col justify-between"
+    },
+    "role_selector": "flex flex-col gap-4 p-8 w-full h-full justify-center items-center bg-zinc-950 text-white"
+  },
+  "interactions": {
+    "sheet_transition": "Use framer-motion for bottom sheet Y-axis sliding. Spring physics: stiffness 300, damping 30.",
+    "hover_states": "Since this simulates mobile, focus on active:scale-95 for touch feedback rather than complex hovers."
+  },
+  "media": {
+    "avatars": [
+      {
+        "url": "https://images.unsplash.com/photo-1770058428154-9eee8a6a1fbb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBmcmllbmRseSUyMHBvcnRyYWl0fGVufDB8fHx8MTc3NjYzMDI3MXww&ixlib=rb-4.1.0&q=85",
+        "description": "Passenger Profile Avatar",
+        "category": "user_avatar"
+      },
+      {
+        "url": "https://images.pexels.com/photos/16322150/pexels-photo-16322150.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Driver Profile Avatar",
+        "category": "driver_avatar"
+      }
+    ],
+    "vehicles": [
+      {
+        "url": "https://images.unsplash.com/photo-1594200921738-cfbb5e7b9dce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMG1vZGVybiUyMGNhciUyMHNpZGUlMjB2aWV3JTIwaXNvbGF0ZWR8ZW58MHx8fHwxNzc2NjMwMjgzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Economy Ride Selection",
+        "category": "ride_economy"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1583389570766-e67327447d84?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwzfHx3aGl0ZSUyMG1vZGVybiUyMGNhciUyMHNpZGUlMjB2aWV3JTIwaXNvbGF0ZWR8ZW58MHx8fHwxNzc2NjMwMjgzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Premium Ride Selection",
+        "category": "ride_premium"
+      }
+    ]
+  },
+  "testing": {
+    "attributes": "All interactive elements MUST have data-testid attributes (e.g. data-testid='role-passenger-btn', data-testid='request-ride-btn')."
+  },
+  "instructions_to_main_agent": [
+    "1. MOBILE VIEWPORT SIMULATION: Since the stack is React.js/Tailwind, simulate a mobile app by wrapping the main Router/App in a div with `max-w-md mx-auto h-[100dvh] sm:rounded-[2.5rem] overflow-hidden relative shadow-2xl`. Do not build a standard desktop web layout.",
+    "2. THEME SPLIT: The Role Selector screen should set a global state (Passenger vs Driver). If Driver is selected, apply the `dark` class to the wrapper. If Passenger, ensure it is removed.",
+    "3. MAP IMPLEMENTATION: The map must sit at `absolute inset-0 z-0`. Use react-map-gl, leaflet, or a mocked interactive div if no keys are present. All app UI (search bars, ride options) should float over it in absolute positioned Bottom Sheets.",
+    "4. BOTTOM SHEETS: Do not use Shadcn Dialog for the main map UI. Build a custom absolutely positioned div anchored to the bottom with `rounded-t-[2rem]` to act as a persistent or sliding sheet.",
+    "5. DRIVER DASHBOARD: Use 'Bento Grid' strategy. A large toggle for Online/Offline, and compact square widgets (`aspect-square`) for Earnings ($124.50) and Acceptance Rate.",
+    "6. ICONS: Extensively use `lucide-react` for UI elements (Car, MapPin, Navigation, Star, Wallet, User).",
+    "7. AVOID: Do not use generic standard Shadcn cards with small borders for the mobile feel. Use generous border radii (`rounded-2xl`, `rounded-3xl`) and large hit areas (h-14 buttons) for touch targets."
+  ]
+}

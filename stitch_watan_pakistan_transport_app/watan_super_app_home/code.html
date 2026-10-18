@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-tertiary-fixed-variant": "#3d4a43", "surface-container-high": "#e7e9e4", "on-surface": "#191c1a", "primary-container": "#006837", "primary-fixed": "#9ef6b6", "tertiary-fixed-dim": "#bccac0", "surface-bright": "#f8faf5", "error-container": "#ffdad6", "surface-variant": "#e1e3de", "tertiary-container": "#505d55", "surface-container-highest": "#e1e3de", "surface": "#f8faf5", "on-background": "#191c1a", "inverse-primary": "#83d99c", "tertiary-fixed": "#d8e6dc", "on-secondary": "#ffffff", "inverse-surface": "#2e312e", "secondary-fixed-dim": "#e9c349", "secondary-fixed": "#ffe088", "inverse-on-surface": "#f0f1ec", "primary": "#004d27", "surface-container-low": "#f3f4ef", "surface-container-lowest": "#ffffff", "secondary": "#735c00", "on-error": "#ffffff", "on-secondary-container": "#745c00", "on-surface-variant": "#3f4940", "error": "#ba1a1a", "primary-fixed-dim": "#83d99c", "on-tertiary-container": "#c7d5cb", "secondary-container": "#fed65b", "on-primary-fixed": "#00210e", "surface-dim": "#d9dbd6", "surface-container": "#edeeea", "on-error-container": "#93000a", "on-secondary-fixed": "#241a00", "on-primary-container": "#8ee4a6", "outline-variant": "#bec9be", "on-primary": "#ffffff", "on-primary-fixed-variant": "#00522a", "surface-tint": "#0b6d3b", "background": "#f8faf5", "tertiary": "#39453e", "on-tertiary-fixed": "#121e18", "on-secondary-fixed-variant": "#574500", "on-tertiary": "#ffffff", "outline": "#6f7a70" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "margin": "1rem", "space-md": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-xl": "2rem", "gutter": "1rem" }, fontFamily: { "body-lg": ["Noto Sans"], "body-sm": ["Noto Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "label-sm": ["Noto Sans"], "body-md": ["Noto Sans"], "headline-lg": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "title-md": ["Plus Jakarta Sans"], "headline-xl-mobile": ["Plus Jakarta Sans"], "label-md": ["Noto Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "label-lg": ["Noto Sans"] }, fontSize: { "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "body-sm": ["12px", {"lineHeight": "18px", "fontWeight": "400"}], "headline-lg-mobile": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}], "label-sm": ["10px", {"lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}], "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700"}], "headline-xl": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800"}], "title-md": ["16px", {"lineHeight": "22px", "fontWeight": "600"}], "headline-xl-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800"}], "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}], "headline-md": ["20px", {"lineHeight": "26px", "fontWeight": "700"}], "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}], "label-lg": ["14px", {"lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600"}] } } } }</script></head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 inset-x-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,77,40,0.06)] pt-safe"><div class="h-20 px-space-md flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0 flex-1"><img alt="Watan Logo" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBwzab2YebDRA6sHrzNmKjsq8N9c5eJzhX7Lw3VMxLf-mEeb9t9s3reRyZHEQfyxFtsA9liTvj8teWUwjDDg4V1Cjr59UyxXy8tM5uYERhDDqrCcZj4DvTyNqMgknc8NXNWfaj87LaqWtaf0Lk-PM2F_tD2UxinwXQBYP9H5Ei3JngtkKJaAJuO_oGH9Sq4Pp0leTnbrj51xH9vh83Mo-GI1Ql1QIDl4781UqDlv6OZVtrNPB2CP70rA"/><button class="flex items-center gap-space-xs text-left px-space-sm py-1 rounded-full bg-surface-container-low hover:bg-surface-container transition-colors min-h-[44px] min-w-0 max-w-[170px]" type="button"><span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0">location_on</span><div class="flex flex-col min-w-0 leading-tight"><span class="font-label-sm text-label-sm text-primary uppercase font-bold truncate">Rawalpindi</span><span class="font-body-sm text-body-sm text-on-surface-variant truncate">Saddar Station</span></div><span class="material-symbols-outlined text-outline text-[16px] flex-shrink-0">expand_more</span></button></div><div class="flex items-center gap-space-xs flex-shrink-0"><div class="flex items-center gap-1 bg-secondary-fixed/50 px-2 py-1.5 rounded-full text-on-secondary-fixed min-h-[44px]"><span class="material-symbols-outlined text-secondary text-[16px]">account_balance_wallet</span><span class="font-label-sm text-label-sm font-bold text-on-secondary-fixed">Rs. 450</span></div><button class="flex items-center justify-center bg-surface-container px-2 py-1 rounded-full text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm min-h-[44px]" type="button"><span class="font-bold text-primary">EN</span><span class="mx-0.5 text-outline-variant">|</span><span class="opacity-70">اردو</span></button><button class="min-h-[44px] min-w-[44px] flex items-center justify-center" type="button"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuVJD7fv0Fuyn0_hA6cwBtjxbCF5L2fVJ1NpwOfxLNIUKEgqe9JoPbfq33zCaFZnBJOQYuRzbVpPhtM-bq76boCYYLHUDpF8N-6N73a0bNy0yP9_wmX7ydFMkTLZ_i3NZ8SRBdt7EJ7_07bf-Y72rL3KYN7_XAvdjwtfmBVSXWNDqtTNu80LOv2vWY0fvHmV9Gki3G_0ayv2pcc-b3aAQz9VJ8hNcXwwB_3ptCMmHHfG3eubkKvpb1jw"/></button></div></div></header><main class="flex-1 flex flex-col relative w-full pt-20 pb-20 bg-surface"><div class="flex flex-col w-full pb-8">
+<!-- Dynamic Hero Banner with Geometric Watermark & Transit Wave -->
+<section class="px-space-md pt-2 pb-1">
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-[#005a2f] to-[#01381c] p-4 text-on-primary shadow-xl">
+<!-- Islamic Tessellation & Transit Wave Watermark -->
+<svg class="absolute -right-6 -bottom-6 w-44 h-44 text-white/5 pointer-events-none" fill="currentColor" viewbox="0 0 100 100">
+<path d="M50 0 L61 35 L98 35 L68 57 L79 91 L50 70 L21 91 L32 57 L2 35 L39 35 Z" opacity="0.3"></path>
+<circle cx="50" cy="50" fill="none" r="42" stroke="currentColor" stroke-dasharray="3 3" stroke-width="2"></circle>
+<path d="M0 70 Q 25 50, 50 70 T 100 70" fill="none" opacity="0.4" stroke="currentColor" stroke-width="3"></path>
+<path d="M0 80 Q 25 60, 50 80 T 100 80" fill="none" opacity="0.25" stroke="currentColor" stroke-width="2"></path>
+</svg>
+<!-- Badge Strip -->
+<div class="flex items-center justify-between gap-2 mb-2 relative z-10">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold shadow-sm">
+<span>🇵🇰</span>
+<span>National Mobility Pass</span>
+<span class="w-1 h-1 rounded-full bg-on-secondary-container/40"></span>
+<span class="text-secondary font-extrabold">20% Off Intercity</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary-fixed bg-white/10 px-2 py-0.5 rounded-full backdrop-blur-xs">سپر ایپ</span>
+</div>
+<!-- Headlines -->
+<div class="relative z-10 pr-6">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-white leading-tight tracking-tight">
+          Book any ride or reserve an Adda seat across Pakistan
+        </h2>
+<p class="font-headline-sm text-headline-sm text-primary-fixed-dim mt-1 text-right leading-snug" dir="rtl">
+          ملک بھر میں سواری اور اڈہ سیٹ باآسانی بک کریں
+        </p>
+</div>
+<!-- Quick Micro Metrics -->
+<div class="flex items-center gap-3 mt-3 pt-3 bg-white/10 -mx-4 -mb-4 px-4 py-2 relative z-10 backdrop-blur-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-fixed animate-ping"></span>
+<span class="font-label-sm text-label-sm text-white/90 font-semibold">1,480+ Active Addas</span>
+</div>
+<span class="text-white/30 text-xs">•</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary-fixed text-sm">verified</span>
+<span class="font-label-sm text-label-sm text-white/90">Official Railway &amp; NHA Sync</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Floating Elevated Interactive Search Container -->
+<section class="px-space-md -mt-2 z-20">
+<div class="rounded-2xl bg-surface-container-lowest p-2 shadow-xl shadow-primary/10">
+<div class="flex items-center gap-2 bg-surface-container-low rounded-xl px-3 py-2.5">
+<div class="relative flex items-center justify-center flex-shrink-0">
+<div class="w-8 h-8 rounded-full bg-primary-container/15 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="font-body-md text-body-md text-on-surface font-semibold truncate">Where to? (کہاں جانا ہے؟)</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant truncate">Search station, bus terminal, chowk, or drop-off</div>
+</div>
+<button class="flex-shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-secondary-container to-secondary-fixed text-on-secondary-fixed px-2.5 py-1.5 rounded-lg shadow-sm hover:opacity-95 transition-transform active:scale-95" type="button">
+<span class="material-symbols-outlined text-[18px] animate-pulse">mic</span>
+<span class="font-label-sm text-label-sm font-bold">اردو Voice</span>
+</button>
+</div>
+<!-- Quick Destination Chips -->
+<div class="flex items-center gap-2 overflow-x-auto pt-2 pb-0.5 no-scrollbar">
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-primary text-[15px]">departure_board</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Faizabad Adda</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-secondary text-[15px]">apartment</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Centaurus Mall</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-primary text-[15px]">flight_takeoff</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">ISB Airport</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-outline text-[15px]">near_me</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">G-9 Markaz</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 7 Core Pakistani Transit Modes Grid -->
+<section class="px-space-md pt-5">
+<div class="flex items-baseline justify-between mb-2.5">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface tracking-tight">Mobility Modes</h3>
+<p class="font-label-md text-label-md text-on-surface-variant">شہری اور انٹرسٹی سواریاں</p>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/40 px-2 py-0.5 rounded-full">Guaranteed Meter Fare</span>
+</div>
+<!-- Multi-Column Layout -->
+<div class="grid grid-cols-2 gap-2.5">
+<!-- 1. Bike -->
+<div class="bg-surface-container-lowest p-3 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md active:scale-[0.98]">
+<div class="absolute top-2 right-2">
+<span class="bg-primary-fixed text-on-primary-fixed font-label-sm text-[9px] px-2 py-0.5 rounded-full font-bold">Fastest</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary mb-2">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="5" cy="17" r="3"></circle>
+<circle cx="19" cy="17" r="3"></circle>
+<path d="M12 17h4l3-7h-4l-2 3h-3l-2-6H4"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Bike</span>
+<span class="font-label-md text-label-md text-primary font-bold">Rs. 80</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">Quick doorstep commute • بائیک</p>
+</div>
+</div>
+<!-- 2. Rickshaw (Auto Rickshaw with festive flair) -->
+<div class="bg-surface-container-lowest p-3 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md active:scale-[0.98]">
+<div class="absolute top-2 right-2">
+<span class="bg-secondary-container text-on-secondary-container font-label-sm text-[9px] px-2 py-0.5 rounded-full font-bold">Standard</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-secondary-fixed/30 flex items-center justify-center text-secondary mb-2">
+<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24">
+<path d="M4 15.5C4 16.88 5.12 18 6.5 18S9 16.88 9 15.5 7.88 13 6.5 13 4 14.12 4 15.5zm11 0c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5-2.5 1.12-2.5 2.5zM7 6h10l2 5H5L7 6zm-3 7h16v1.5H4V13z" opacity="0.9"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Rickshaw</span>
+<span class="font-label-md text-label-md text-primary font-bold">Rs. 140</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">CNG 3-Wheeler • رکشہ</p>
+</div>
+</div>
+<!-- 3. Qingqi -->
+<div class="bg-surface-container-lowest p-3 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md active:scale-[0.98]">
+<div class="absolute top-2 right-2">
+<span class="bg-primary-fixed-dim text-on-primary-fixed font-label-sm text-[9px] px-2 py-0.5 rounded-full font-bold">Shared / پاکٹ</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant mb-2">
+<span class="material-symbols-outlined text-[24px] text-primary">electric_rickshaw</span>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Qingqi (چنگچی)</span>
+<span class="font-label-md text-label-md text-primary font-bold">Rs. 40<span class="font-body-sm text-[10px] text-on-surface-variant font-normal">/seat</span></span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">6-9 Seater shuttle loader</p>
+</div>
+</div>
+<!-- 4. Mini Car -->
+<div class="bg-surface-container-lowest p-3 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md active:scale-[0.98]">
+<div class="absolute top-2 right-2">
+<span class="bg-surface-container-high text-on-surface-variant font-label-sm text-[9px] px-2 py-0.5 rounded-full font-bold">AC Option</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary mb-2">
+<span class="material-symbols-outlined text-[24px]">directions_car</span>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Mini Car</span>
+<span class="font-label-md text-label-md text-primary font-bold">Rs. 280</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">Mehran / Alto compact</p>
+</div>
+</div>
+<!-- 5. Comfort Sedan -->
+<div class="bg-surface-container-lowest p-3 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md active:scale-[0.98]">
+<div class="absolute top-2 right-2">
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-[9px] px-2 py-0.5 rounded-full font-bold">★ 4.9 Capt.</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-secondary mb-2">
+<span class="material-symbols-outlined text-[24px]">local_taxi</span>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Comfort Car</span>
+<span class="font-label-md text-label-md text-primary font-bold">Rs. 450</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">Corolla / City Sedan AC</p>
+</div>
+</div>
+<!-- 6. Watan Wagon (HiAce) -->
+<div class="bg-surface-container-lowest p-3 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md active:scale-[0.98]">
+<div class="absolute top-2 right-2">
+<span class="bg-primary text-on-primary font-label-sm text-[9px] px-2 py-0.5 rounded-full font-bold">Twin Cities</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-primary-fixed/30 flex items-center justify-center text-primary mb-2">
+<span class="material-symbols-outlined text-[24px]">airport_shuttle</span>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Watan Wagon</span>
+<span class="font-label-md text-label-md text-primary font-bold">Rs. 120<span class="font-body-sm text-[10px] text-on-surface-variant font-normal">/seat</span></span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">HiAce Inter-district وین</p>
+</div>
+</div>
+</div>
+<!-- 7. Full-Width Featured: Adda Express Intercity -->
+<div class="mt-2.5 bg-gradient-to-r from-surface-container-lowest to-surface-container p-3 rounded-2xl shadow-sm flex items-center justify-between gap-3 relative overflow-hidden">
+<div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary flex-shrink-0">
+<span class="material-symbols-outlined text-[28px]">directions_bus</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-title-md text-title-md text-on-surface font-bold">Adda Express (انٹرسٹی اڈہ)</span>
+<span class="bg-secondary text-on-secondary font-label-sm text-[9px] px-2 py-0.5 rounded-full font-bold">Reserve &amp; Pay at Stand</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">Daewoo, Faisal, Skyways &amp; Luxury Coaches</p>
+</div>
+<button class="bg-primary text-on-primary px-3 py-2 rounded-xl font-label-md text-label-md font-bold flex-shrink-0 flex items-center gap-1 shadow-sm active:scale-95" type="button">
+<span>Book</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</section>
+<!-- Live Nearby Addas Section (اڈے) -->
+<section class="pt-6">
+<div class="px-space-md flex items-center justify-between mb-3">
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-md text-headline-md text-on-surface tracking-tight">Nearby Addas &amp; Terminals</h3>
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant">قریبی اڈے اور ٹرمینل ٹریکنگ</p>
+</div>
+<button class="text-primary font-label-lg text-label-lg font-bold flex items-center gap-0.5 hover:underline" type="button">
+<span>View All (18)</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+<!-- Horizontal Smooth Adda Cards Slider -->
+<div class="flex gap-3 overflow-x-auto px-space-md pb-2 no-scrollbar snap-x snap-mandatory">
+<!-- Adda Card 1: Pirwadhai -->
+<div class="w-[85vw] max-w-[340px] flex-shrink-0 snap-start bg-surface-container-lowest rounded-2xl p-4 shadow-md flex flex-col justify-between">
+<div>
+<!-- Header & Distance -->
+<div class="flex items-start justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold leading-snug">Pirwadhai Al-Makkah Stand</h4>
+<p class="font-label-md text-label-md text-on-surface-variant leading-none mt-1">پیرودھائی المکہ ویگن اڈہ</p>
+</div>
+<span class="bg-surface-container px-2.5 py-1 rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-[14px]">near_me</span>
+<span>0.8 km</span>
+</span>
+</div>
+<!-- Live Status Bar -->
+<div class="flex items-center gap-2 mt-3 bg-primary-fixed/25 text-on-primary-fixed px-3 py-1.5 rounded-xl">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-sm text-label-sm font-bold">12 Departures in Next 30 Mins</span>
+</div>
+<!-- Popular Routes Pills -->
+<div class="flex items-center gap-1.5 mt-3 flex-wrap">
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Peshawar (پشاور)</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Abbottabad</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Attock</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Mardan</span>
+</div>
+<!-- Next Scheduled Wagon Details -->
+<div class="mt-3.5 p-2.5 rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">timer</span>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block leading-tight">Next Pari / Departure</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">10:15 AM</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-secondary font-bold bg-secondary-fixed/50 px-2 py-0.5 rounded-full">4 Seats Left</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant block mt-0.5">HiAce Van #41</span>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="mt-4 w-full bg-primary text-on-primary py-3 px-4 rounded-xl font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 shadow-sm hover:bg-[#004d28] active:scale-[0.98] transition-all" type="button">
+<span>View Pari &amp; Seats (بکنگ اور سیٹیں)</span>
+<span class="material-symbols-outlined text-[18px]">airline_seat_recline_extra</span>
+</button>
+</div>
+<!-- Adda Card 2: Faizabad Coaster Terminal -->
+<div class="w-[85vw] max-w-[340px] flex-shrink-0 snap-start bg-surface-container-lowest rounded-2xl p-4 shadow-md flex flex-col justify-between">
+<div>
+<!-- Header & Distance -->
+<div class="flex items-start justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold leading-snug">Faizabad Coaster Terminal</h4>
+<p class="font-label-md text-label-md text-on-surface-variant leading-none mt-1">فیض آباد کوسٹر ٹرمینل</p>
+</div>
+<span class="bg-surface-container px-2.5 py-1 rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-[14px]">near_me</span>
+<span>2.1 km</span>
+</span>
+</div>
+<!-- Live Status Bar -->
+<div class="flex items-center gap-2 mt-3 bg-secondary-container/40 text-on-secondary-container px-3 py-1.5 rounded-xl">
+<span class="material-symbols-outlined text-secondary text-[16px]">bolt</span>
+<span class="font-label-sm text-label-sm font-bold">8 Departures in Next 20 Mins</span>
+</div>
+<!-- Popular Routes Pills -->
+<div class="flex items-center gap-1.5 mt-3 flex-wrap">
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Lahore (لاہور)</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Murree Express</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Muzaffarabad</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Rawalakot</span>
+</div>
+<!-- Next Scheduled Wagon Details -->
+<div class="mt-3.5 p-2.5 rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">ac_unit</span>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block leading-tight">Executive AC Saloon</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">10:30 AM</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/60 px-2 py-0.5 rounded-full">9 Seats Left</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant block mt-0.5">Toyota Coaster</span>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="mt-4 w-full bg-primary text-on-primary py-3 px-4 rounded-xl font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 shadow-sm hover:bg-[#004d28] active:scale-[0.98] transition-all" type="button">
+<span>View Pari &amp; Seats (بکنگ اور سیٹیں)</span>
+<span class="material-symbols-outlined text-[18px]">airline_seat_recline_extra</span>
+</button>
+</div>
+<!-- Adda Card 3: Karachi Company G-9 -->
+<div class="w-[85vw] max-w-[340px] flex-shrink-0 snap-start bg-surface-container-lowest rounded-2xl p-4 shadow-md flex flex-col justify-between">
+<div>
+<!-- Header & Distance -->
+<div class="flex items-start justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold leading-snug">G-9 Karachi Company Stand</h4>
+<p class="font-label-md text-label-md text-on-surface-variant leading-none mt-1">کراچی کمپنی جی نائن اڈہ</p>
+</div>
+<span class="bg-surface-container px-2.5 py-1 rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-[14px]">near_me</span>
+<span>3.4 km</span>
+</span>
+</div>
+<!-- Live Status Bar -->
+<div class="flex items-center gap-2 mt-3 bg-surface-container text-on-surface px-3 py-1.5 rounded-xl">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm font-bold">Continuous Local Shuttle Active</span>
+</div>
+<!-- Popular Routes Pills -->
+<div class="flex items-center gap-1.5 mt-3 flex-wrap">
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Taxila Cantt</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Wah Cantt</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Haripur</span>
+</div>
+<!-- Next Scheduled Wagon Details -->
+<div class="mt-3.5 p-2.5 rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">directions_bus</span>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block leading-tight">Every 10 Mins</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">Departing Now</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/60 px-2 py-0.5 rounded-full">Available</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant block mt-0.5">Route #105</span>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="mt-4 w-full bg-primary text-on-primary py-3 px-4 rounded-xl font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 shadow-sm hover:bg-[#004d28] active:scale-[0.98] transition-all" type="button">
+<span>View Pari &amp; Seats (بکنگ اور سیٹیں)</span>
+<span class="material-symbols-outlined text-[18px]">airline_seat_recline_extra</span>
+</button>
+</div>
+</div>
+</section>
+<!-- National Transit Safety & Civic Trust Features -->
+<section class="px-space-md pt-5">
+<div class="rounded-2xl bg-surface-container-low p-4 shadow-sm space-y-3">
+<!-- Watan Tahaffuz Emergency Rescue 1122 Chip -->
+<div class="flex items-center justify-between gap-3 bg-surface-container-lowest p-3 rounded-xl shadow-xs">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-error-container text-error flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">shield_with_heart</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-title-md text-title-md text-on-surface font-bold">Watan Tahaffuz (وطن تحفظ)</span>
+<span class="bg-error text-on-error font-label-sm text-[9px] px-1.5 py-0.2 rounded font-bold">24/7 SOS</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight">Direct link with National Police &amp; Rescue 1122</p>
+</div>
+</div>
+<button class="px-3 py-1.5 bg-error-container text-error font-label-sm text-label-sm font-bold rounded-lg flex-shrink-0 active:scale-95" type="button">
+          Call 1122
+        </button>
+</div>
+<!-- Cashless Pakistan Payment Row -->
+<div class="flex items-center justify-between gap-2 px-1 text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">verified_user</span>
+<span class="font-label-sm text-label-sm">1-Tap Cashless: EasyPaisa • JazzCash • Raast</span>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-primary">SBP Verified ✓</span>
+</div>
+</div>
+</section>
+</div>
+<script>
+  // Simple micro-haptic feedback trigger on mode cards
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(25);
+      }
+    });
+  });
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-4px_16px_rgba(0,77,40,0.06)]" data-active-classes="text-primary font-bold"><div class="flex justify-around items-center h-20 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center gap-0.5 w-18 h-14 min-w-[44px] min-h-[44px] transition-colors text-primary font-bold" data-path="rides" href="#"><span class="material-symbols-outlined text-[24px]">directions_car</span><span class="font-label-sm text-label-sm">Rides</span><span class="font-label-sm text-[9px] -mt-1 opacity-80 font-normal">سواری</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-18 h-14 min-w-[44px] min-h-[44px] text-on-surface-variant transition-colors" data-path="addas" href="#"><span class="material-symbols-outlined text-[24px]">directions_bus</span><span class="font-label-sm text-label-sm">Addas</span><span class="font-label-sm text-[9px] -mt-1 opacity-80 font-normal">اڈے</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-18 h-14 min-w-[44px] min-h-[44px] text-on-surface-variant transition-colors" data-path="my-bookings" href="#"><span class="material-symbols-outlined text-[24px]">confirmation_number</span><span class="font-label-sm text-label-sm">Bookings</span><span class="font-label-sm text-[9px] -mt-1 opacity-80 font-normal">بکنگز</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-18 h-14 min-w-[44px] min-h-[44px] text-on-surface-variant transition-colors" data-path="wallet" href="#"><span class="material-symbols-outlined text-[24px]">account_balance_wallet</span><span class="font-label-sm text-label-sm">Wallet</span><span class="font-label-sm text-[9px] -mt-1 opacity-80 font-normal">والٹ</span></a></div></nav></body></html>

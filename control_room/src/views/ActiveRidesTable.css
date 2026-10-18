@@ -1,0 +1,118 @@
+.active-rides-view {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  text-align: left;
+}
+
+.active-rides-view h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.active-rides-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: rgba(18, 22, 31, 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.active-rides-table th,
+.active-rides-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+  vertical-align: middle;
+  color: #f8fafc;
+}
+
+.active-rides-table th {
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(24, 29, 40, 0.8);
+}
+
+.active-ride-status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.active-ride-status-badge.status-in_progress {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.active-rides-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.active-rides-actions button {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #f8fafc;
+  background: #1e2536;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.active-rides-actions button:first-child {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.active-rides-actions button:first-child:hover:not(:disabled) {
+  background: #ef4444;
+  color: #fff;
+}
+
+.active-rides-actions button:last-child {
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.active-rides-actions button:last-child:hover:not(:disabled) {
+  background: #f59e0b;
+  color: #0f172a;
+}
+
+.active-rides-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.active-rides-error {
+  margin: 0;
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+.active-rides-row-error {
+  margin: 0.4rem 0 0;
+  color: #ef4444;
+  font-size: 0.78rem;
+  max-width: 220px;
+}

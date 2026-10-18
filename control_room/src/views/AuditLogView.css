@@ -1,0 +1,73 @@
+.audit-log-view {
+  max-width: 960px;
+  margin: 2rem auto;
+  text-align: left;
+}
+
+.audit-log-view h2 {
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.audit-log-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.audit-log-filters label {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.audit-log-filters input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+}
+
+.audit-log-filters button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.audit-log-filters button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.audit-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.audit-log-table th,
+.audit-log-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.audit-log-table th {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.audit-log-error {
+  margin: 0 0 1rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+}

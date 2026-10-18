@@ -1,0 +1,144 @@
+.pending-requests-view {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  text-align: left;
+}
+
+.pending-requests-view h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.pending-requests-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.pending-requests-search {
+  flex: 1 1 240px;
+  box-sizing: border-box;
+  padding: 0.6rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font: inherit;
+  color: #f8fafc;
+  background: #181d28;
+  outline: none;
+}
+
+.pending-requests-search:focus {
+  border-color: #f59e0b;
+}
+
+.pending-requests-select {
+  padding: 0.6rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font: inherit;
+  color: #f8fafc;
+  background: #181d28;
+  outline: none;
+  cursor: pointer;
+}
+
+.pending-requests-select:focus {
+  border-color: #f59e0b;
+}
+
+.pending-requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: rgba(18, 22, 31, 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pending-requests-table th,
+.pending-requests-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+  vertical-align: middle;
+  color: #f8fafc;
+}
+
+.pending-requests-table th {
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(24, 29, 40, 0.8);
+}
+
+.pending-row-aging {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #f8fafc !important;
+  border-left: 3px solid #f59e0b;
+}
+
+.pending-aging-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.pending-requests-table td .btn-assign {
+  padding: 0.4rem 0.85rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pending-requests-table td .btn-assign:hover {
+  background: #f59e0b;
+  color: #0f172a;
+}
+
+.pending-requests-table td .btn-cancel {
+  padding: 0.4rem 0.85rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pending-requests-table td .btn-cancel:hover:not(:disabled) {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.pending-requests-table td .btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pending-requests-error {
+  margin: 0;
+  color: #ef4444;
+  font-size: 0.875rem;
+}
