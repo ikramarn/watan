@@ -61,7 +61,8 @@ export interface EnrolledDriver {
   vehicleType: string;
   vehiclePlate: string;
   corridor: string;
-  operatingMode: "in_adda_pari" | "roaming";
+  dutyStatus: "online" | "offline"; // Managed by Stand Munshi: Online in Stand Queue vs Offline/Suspended
+  driverReportedMode: "in_adda_pari" | "roaming"; // Read-only telemetry: selected by driver in Driver Mobile App
   registeredDate: string;
   totalTrips: number;
 }
@@ -190,7 +191,8 @@ export default function App() {
       vehicleType: "Toyota HiAce Grand Cabin (14-Seater)",
       vehiclePlate: "LES-19-4821",
       corridor: "Pirwadhai to Peshawar Line",
-      operatingMode: "in_adda_pari",
+      dutyStatus: "online",
+      driverReportedMode: "in_adda_pari",
       registeredDate: "12 Oct 2026",
       totalTrips: 48,
     },
@@ -202,7 +204,8 @@ export default function App() {
       vehicleType: "Toyota Coaster (28-Seater)",
       vehiclePlate: "RIP-21-9921",
       corridor: "Rawalpindi to Lahore Motorway Line",
-      operatingMode: "in_adda_pari",
+      dutyStatus: "online",
+      driverReportedMode: "in_adda_pari",
       registeredDate: "05 Oct 2026",
       totalTrips: 62,
     },
@@ -214,7 +217,8 @@ export default function App() {
       vehicleType: "Sazgar 9-Seater Qingqi",
       vehiclePlate: "RWP-18-3011",
       corridor: "Pirwadhai to Saddar Shuttle",
-      operatingMode: "in_adda_pari",
+      dutyStatus: "offline",
+      driverReportedMode: "in_adda_pari",
       registeredDate: "15 Oct 2026",
       totalTrips: 114,
     },
@@ -226,7 +230,8 @@ export default function App() {
       vehicleType: "Suzuki Bolan (7-Seater)",
       vehiclePlate: "RWP-14-5541",
       corridor: "Rawalpindi - Murree Express",
-      operatingMode: "roaming",
+      dutyStatus: "online",
+      driverReportedMode: "roaming", // Notice: Driver reported roaming via their Driver App; Munshi sees read-only status
       registeredDate: "01 Oct 2026",
       totalTrips: 31,
     },
@@ -234,6 +239,8 @@ export default function App() {
 
   // Driver Enrollment Modal State
   const [showEnrollModal, setShowEnrollModal] = useState<boolean>(false);
+  const [showMunshiProfileModal, setShowMunshiProfileModal] = useState<boolean>(false);
+  const [deleteConfirmDriver, setDeleteConfirmDriver] = useState<EnrolledDriver | null>(null);
   const [newDriverName, setNewDriverName] = useState<string>("");
   const [newDriverPhone, setNewDriverPhone] = useState<string>("");
   const [newDriverCnic, setNewDriverCnic] = useState<string>("");
@@ -452,7 +459,8 @@ export default function App() {
       vehicleType: newDriverVehicle,
       vehiclePlate: newDriverPlate.trim().toUpperCase(),
       corridor: newDriverCorridor,
-      operatingMode: "in_adda_pari",
+      dutyStatus: "online",
+      driverReportedMode: "in_adda_pari",
       registeredDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
       totalTrips: 0,
     };
@@ -464,24 +472,32 @@ export default function App() {
     setNewDriverCnic("");
     setNewDriverPlate("");
     setAlertMessage(
-      `Driver ${newDriver.name} enrolled into Stand Fleet! Dual-Mode (0% Adda Pari + Roaming) is now unlocked in their Watan Driver App.`
+      `Driver ${newDriver.name} (${newDriver.vehiclePlate}) successfully enrolled into Stand Fleet! 0% Adda Pari rate agreement is now active.`
     );
   };
 
-  const handleToggleDriverMode = (driverId: string) => {
+  const handleToggleDriverDuty = (driverId: string) => {
     setEnrolledDrivers((prev) =>
       prev.map((d) => {
         if (d.id !== driverId) return d;
-        const newMode = d.operatingMode === "in_adda_pari" ? "roaming" : "in_adda_pari";
+        const newDuty = d.dutyStatus === "online" ? "offline" : "online";
         setAlertMessage(
-          `Switched ${d.name} (${d.vehiclePlate}) to ${
-            newMode === "in_adda_pari"
-              ? "Adda Pari Stand Queue (0% Platform Fee)"
-              : "Independent Roaming (Doorstep Customer Hails)"
-          }.`
+          newDuty === "offline"
+            ? `Munshi Action: Marked ${d.name} (${d.vehiclePlate}) OFFLINE / SUSPENDED (آف لائن / معطل). Vehicle cannot load passengers at stand bays.`
+            : `Munshi Action: Marked ${d.name} (${d.vehiclePlate}) ACTIVE & ONLINE in Stand Queue (آن ڈیوٹی اڈہ پاری).`
         );
-        return { ...d, operatingMode: newMode };
+        return { ...d, dutyStatus: newDuty };
       })
+    );
+  };
+
+  const handleDeleteDriver = (driverId: string) => {
+    const target = enrolledDrivers.find((d) => d.id === driverId);
+    if (!target) return;
+    setEnrolledDrivers((prev) => prev.filter((d) => d.id !== driverId));
+    setDeleteConfirmDriver(null);
+    setAlertMessage(
+      `Munshi Action: Removed ${target.name} (${target.vehiclePlate}) from Stand Fleet roster. Stand 0% fee status revoked.`
     );
   };
 
@@ -642,15 +658,22 @@ export default function App() {
               <span className="text-[9px] text-primary font-semibold">Active • 0% Driver Cut</span>
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-1 rounded bg-surface-container border border-outline-variant">
+            <button
+              onClick={() => setShowMunshiProfileModal(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-primary/60 transition-all text-left shadow-sm group cursor-pointer"
+              title="Open Munshi & Stand Admin Profile (منشی پروفائل)"
+            >
               <div className="text-right leading-tight">
-                <div className="text-sm font-bold text-on-surface">Aslam Khan</div>
-                <div className="text-xs text-secondary font-semibold">منشی نگران</div>
+                <div className="text-xs font-bold text-on-surface group-hover:text-primary transition-colors flex items-center gap-1 justify-end">
+                  <span>Malik Aslam Khan</span>
+                  <span className="material-symbols-outlined text-[13px] text-primary">verified</span>
+                </div>
+                <div className="text-[10px] text-secondary font-semibold">منشی نگران اڈہ • Admin</div>
               </div>
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
+              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-all">
+                <span className="material-symbols-outlined text-[18px]">badge</span>
               </div>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -1132,13 +1155,15 @@ export default function App() {
                 <div>
                   <h3 className="font-bold text-base text-on-surface">Adda Fleet Enrolled Driver Directory (اڈہ گاڑی اور ڈرائیور رجسٹریشن)</h3>
                   <p className="text-xs text-on-surface-variant mt-1 leading-relaxed max-w-4xl">
-                    <strong>Watan Dual-Mode Model:</strong> Independent drivers who do not want to be in an Adda operate directly as normal independent roaming drivers (like Uber / InDrive / Bykea) at 10% platform commission. Once your Adda enrolls a driver here, their driver app unlocks the <strong>Dual-Mode Switcher</strong> allowing them to choose between <strong>Adda Pari (0% Commission, Stand Turn Queue)</strong> and <strong>Independent Roaming</strong>.
+                    <strong>Stand Munshi Privileges:</strong> As Stand Munshi/Admin, you can <strong>Add (Enroll)</strong> new vehicles into your stand roster, <strong>Delete</strong> non-compliant drivers, or mark drivers <strong>Offline / Suspended</strong> from the stand bay queues.
+                    <br />
+                    <strong>Driver Roaming Privilege:</strong> Live Roaming (Uber / InDrive mode) is strictly the private privilege of the driver himself inside his own Driver App. The Munshi cannot force a driver to roam; telemetry below displays their current live status.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowEnrollModal(true)}
-                className="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider flex items-center gap-2 shrink-0 shadow-lg"
+                className="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider flex items-center gap-2 shrink-0 shadow-lg cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">person_add</span>
                 <span>Enroll New Driver</span>
@@ -1154,18 +1179,20 @@ export default function App() {
               <div className="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant">
                 <span className="text-xs text-on-surface-variant font-semibold">Active in Stand Queue</span>
                 <div className="text-xl font-bold text-secondary mt-1">
-                  {enrolledDrivers.filter((d) => d.operatingMode === "in_adda_pari").length} Vehicles
+                  {enrolledDrivers.filter((d) => d.dutyStatus === "online" && d.driverReportedMode === "in_adda_pari").length} Vehicles
                 </div>
               </div>
               <div className="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant">
-                <span className="text-xs text-on-surface-variant font-semibold">Switched to Roaming</span>
+                <span className="text-xs text-on-surface-variant font-semibold">Stand Offline / Suspended</span>
+                <div className="text-xl font-bold text-red-400 mt-1">
+                  {enrolledDrivers.filter((d) => d.dutyStatus === "offline").length} Drivers
+                </div>
+              </div>
+              <div className="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant">
+                <span className="text-xs text-on-surface-variant font-semibold">Roaming (Driver Choice)</span>
                 <div className="text-xl font-bold text-surface-tint mt-1">
-                  {enrolledDrivers.filter((d) => d.operatingMode === "roaming").length} Drivers
+                  {enrolledDrivers.filter((d) => d.dutyStatus === "online" && d.driverReportedMode === "roaming").length} Drivers
                 </div>
-              </div>
-              <div className="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant">
-                <span className="text-xs text-on-surface-variant font-semibold">Stand Rate Agreement</span>
-                <div className="text-xl font-bold text-primary mt-1">0% Platform Fee</div>
               </div>
             </div>
 
@@ -1173,8 +1200,8 @@ export default function App() {
             <div className="bg-surface-container-low rounded-xl border border-outline-variant overflow-hidden">
               <div className="p-4 border-b border-outline-variant flex items-center justify-between">
                 <div>
-                  <h4 className="font-bold text-sm text-on-surface">Registered Stand Drivers & Live Queue Status</h4>
-                  <p className="text-xs text-on-surface-variant">Toggle driver mode between Adda Queue and Independent Roaming</p>
+                  <h4 className="font-bold text-sm text-on-surface">Registered Stand Drivers & Duty Roster (اڈہ ڈرائیورز و ڈیوٹی روسٹر)</h4>
+                  <p className="text-xs text-on-surface-variant">Munshi Actions: Add Driver, Delete from Fleet, or Set Offline • Live Roaming is driver's own mobile choice</p>
                 </div>
                 <span className="px-2.5 py-1 rounded bg-surface-container-high text-xs text-primary font-bold border border-outline-variant">
                   {enrolledDrivers.length} Active Records
@@ -1182,64 +1209,111 @@ export default function App() {
               </div>
 
               <div className="divide-y divide-outline-variant/60">
-                {enrolledDrivers.map((driver) => (
-                  <div key={driver.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-container/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary text-primary flex items-center justify-center font-bold text-base">
-                        {driver.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-on-surface">{driver.name}</span>
-                          <span className="text-xs text-secondary font-mono">{driver.phone}</span>
-                        </div>
-                        <div className="text-xs text-on-surface-variant flex items-center gap-2 mt-0.5">
-                          <span>{driver.vehicleType}</span>
-                          <span>•</span>
-                          <span className="font-mono font-bold text-on-surface">{driver.vehiclePlate}</span>
-                          <span>•</span>
-                          <span className="text-primary font-semibold">{driver.corridor}</span>
-                        </div>
-                        <div className="text-[11px] text-outline mt-0.5">
-                          CNIC: {driver.cnic} • Enrolled: {driver.registeredDate} • Trips: {driver.totalTrips}
-                        </div>
-                      </div>
-                    </div>
+                {enrolledDrivers.map((driver) => {
+                  const isOffline = driver.dutyStatus === "offline";
+                  const isDriverRoaming = !isOffline && driver.driverReportedMode === "roaming";
 
-                    <div className="flex items-center gap-3 self-end md:self-center">
-                      <div className="text-right">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 ${
-                            driver.operatingMode === "in_adda_pari"
-                              ? "bg-primary/20 text-primary border border-primary/50"
-                              : "bg-surface-tint/20 text-surface-tint border border-surface-tint/50"
+                  return (
+                    <div key={driver.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-container/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-full border flex items-center justify-center font-bold text-base ${
+                            isOffline
+                              ? "bg-red-500/10 border-red-500/40 text-red-400"
+                              : isDriverRoaming
+                              ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
+                              : "bg-primary/20 border-primary text-primary"
                           }`}
                         >
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              driver.operatingMode === "in_adda_pari" ? "bg-primary" : "bg-surface-tint"
-                            }`}
-                          ></span>
-                          {driver.operatingMode === "in_adda_pari" ? "In Adda Pari (0% Fee)" : "Roaming Doorstep Mode"}
-                        </span>
-                        <div className="text-[10px] text-outline mt-0.5">
-                          {driver.operatingMode === "in_adda_pari" ? "Loading in Stand Bay" : "Accepting street hails"}
+                          {driver.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-on-surface">{driver.name}</span>
+                            <span className="text-xs text-secondary font-mono">{driver.phone}</span>
+                            {isOffline && (
+                              <span className="px-2 py-0.5 rounded bg-red-950/80 border border-red-600/50 text-red-300 text-[10px] font-bold">
+                                معطل / OFFLINE
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-on-surface-variant flex items-center gap-2 mt-0.5">
+                            <span>{driver.vehicleType}</span>
+                            <span>•</span>
+                            <span className="font-mono font-bold text-on-surface">{driver.vehiclePlate}</span>
+                            <span>•</span>
+                            <span className="text-primary font-semibold">{driver.corridor}</span>
+                          </div>
+                          <div className="text-[11px] text-outline mt-0.5">
+                            CNIC: {driver.cnic} • Enrolled: {driver.registeredDate} • Trips: {driver.totalTrips}
+                          </div>
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleToggleDriverMode(driver.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                          driver.operatingMode === "in_adda_pari"
-                            ? "bg-surface-container-high hover:bg-surface-tint/20 text-surface-tint border-surface-tint/40"
-                            : "bg-surface-container-high hover:bg-primary/20 text-primary border-primary/40"
-                        }`}
-                      >
-                        {driver.operatingMode === "in_adda_pari" ? "Switch to Roaming" : "Return to Adda Queue"}
-                      </button>
+                      <div className="flex items-center gap-3 self-end md:self-center">
+                        {/* Live Status Badge */}
+                        <div className="text-right">
+                          {isOffline ? (
+                            <span className="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 bg-red-500/20 text-red-400 border border-red-500/50">
+                              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                              Stand Offline / معطل
+                            </span>
+                          ) : isDriverRoaming ? (
+                            <span className="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/50">
+                              <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                              Driver Roaming (App Choice)
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 bg-primary/20 text-primary border border-primary/50">
+                              <span className="w-2 h-2 rounded-full bg-primary"></span>
+                              In Adda Pari (0% Fee)
+                            </span>
+                          )}
+                          <div className="text-[10px] text-outline mt-0.5">
+                            {isOffline
+                              ? "Suspended by Munshi (Blocked from loading)"
+                              : isDriverRoaming
+                              ? "Driver picked street hails on mobile"
+                              : "Active in stand bay loading queue"}
+                          </div>
+                        </div>
+
+                        {/* Munshi Actions */}
+                        <div className="flex items-center gap-2">
+                          {/* Make Offline / Set Active Toggle */}
+                          <button
+                            onClick={() => handleToggleDriverDuty(driver.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
+                              driver.dutyStatus === "online"
+                                ? "bg-surface-container-high hover:bg-amber-500/20 text-amber-300 border-amber-500/40"
+                                : "bg-surface-container-high hover:bg-primary/20 text-primary border-primary/40"
+                            }`}
+                            title={
+                              driver.dutyStatus === "online"
+                                ? "Mark driver offline/suspended from stand queue"
+                                : "Re-activate driver for stand queue"
+                            }
+                          >
+                            <span className="material-symbols-outlined text-[15px]">
+                              {driver.dutyStatus === "online" ? "pause_circle" : "play_circle"}
+                            </span>
+                            <span>{driver.dutyStatus === "online" ? "Make Offline (آف لائن)" : "Set Active (آن ڈیوٹی)"}</span>
+                          </button>
+
+                          {/* Delete / Remove Driver */}
+                          <button
+                            onClick={() => setDeleteConfirmDriver(driver)}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all border bg-surface-container-high hover:bg-red-950/60 text-red-400 border-red-800/40 flex items-center gap-1 cursor-pointer"
+                            title="Remove driver from Stand Fleet roster"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">delete</span>
+                            <span>Remove (خارج)</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -1707,6 +1781,197 @@ export default function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmDriver && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container rounded-xl max-w-md w-full p-6 border border-red-500/40 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center gap-3 text-red-400 border-b border-outline-variant pb-3">
+              <span className="material-symbols-outlined text-2xl">warning</span>
+              <div>
+                <h3 className="font-bold text-base text-on-surface">Remove Driver from Stand Fleet?</h3>
+                <p className="text-xs text-red-400 font-semibold">اڈہ روسٹر سے اخراج کی تصدیق</p>
+              </div>
+            </div>
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              Are you sure you want to remove <strong>{deleteConfirmDriver.name}</strong> (
+              <span className="font-mono font-bold text-on-surface">{deleteConfirmDriver.vehiclePlate}</span>) from the Stand Fleet?
+              <br /><br />
+              This will revoke their <strong>0% Adda Pari rate agreement</strong>. In their Watan Driver App, they will operate solely as an independent roaming driver (10% platform commission).
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setDeleteConfirmDriver(null)}
+                className="px-4 py-2 rounded text-xs font-bold text-on-surface-variant hover:text-white cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteDriver(deleteConfirmDriver.id)}
+                className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">delete_forever</span>
+                <span>Confirm Removal (اڈہ سے خارج کریں)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Munshi & Stand Admin Profile Modal */}
+      {showMunshiProfileModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container rounded-2xl max-w-2xl w-full p-6 border border-primary/40 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-outline-variant pb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-primary/20 border-2 border-primary text-primary flex items-center justify-center font-bold text-2xl shadow-inner">
+                  MAK
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-headline-sm text-lg font-bold text-on-surface">
+                      Malik Muhammad Aslam Khan
+                    </h3>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 border border-primary/50 text-primary text-[10px] font-bold uppercase">
+                      <span className="material-symbols-outlined text-[12px]">verified</span>
+                      Stand Admin
+                    </span>
+                  </div>
+                  <div className="text-xs text-secondary font-semibold mt-0.5">
+                    چیف منشی و انچارج اڈہ • Al-Makkah Rawalpindi Pirwadhai Terminal (#ISB-001)
+                  </div>
+                  <div className="text-[11px] text-on-surface-variant mt-0.5">
+                    Authorized Terminal Counter Operator & Fleet Supervisor
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowMunshiProfileModal(false)}
+                className="text-on-surface-variant hover:text-white p-1 rounded-lg hover:bg-surface-container-high transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Credentials Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+                <span className="text-[11px] text-on-surface-variant font-medium">Operator CNIC</span>
+                <div className="text-xs font-bold font-mono text-on-surface mt-0.5">37405-1928371-3</div>
+                <div className="text-[10px] text-primary flex items-center gap-1 mt-0.5">
+                  <span className="material-symbols-outlined text-[11px]">fingerprint</span> Biometric Verified
+                </div>
+              </div>
+              <div className="bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+                <span className="text-[11px] text-on-surface-variant font-medium">Contact / WhatsApp</span>
+                <div className="text-xs font-bold font-mono text-on-surface mt-0.5">0300-8512349</div>
+                <div className="text-[10px] text-secondary">Raast Linked</div>
+              </div>
+              <div className="bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+                <span className="text-[11px] text-on-surface-variant font-medium">Active Duty Shift</span>
+                <div className="text-xs font-bold text-on-surface mt-0.5">Evening Duty</div>
+                <div className="text-[10px] text-outline">04:00 PM – 12:00 AM</div>
+              </div>
+              <div className="bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+                <span className="text-[11px] text-on-surface-variant font-medium">Hardware Terminal</span>
+                <div className="text-xs font-bold font-mono text-on-surface mt-0.5">WATAN-POS-ISB-01</div>
+                <div className="text-[10px] text-primary">Sunmi 58mm Thermal (Online)</div>
+              </div>
+              <div className="bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+                <span className="text-[11px] text-on-surface-variant font-medium">Stand Location</span>
+                <div className="text-xs font-bold text-on-surface mt-0.5">Bay #2 Counter</div>
+                <div className="text-[10px] text-outline">Pirwadhai Main Adda</div>
+              </div>
+              <div className="bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+                <span className="text-[11px] text-on-surface-variant font-medium">Stand Agreement</span>
+                <div className="text-xs font-bold text-primary mt-0.5">Watan Stand License</div>
+                <div className="text-[10px] text-outline">0% Driver Cut Active</div>
+              </div>
+            </div>
+
+            {/* Munshi Privileges & Authority Matrix */}
+            <div className="bg-surface-container-low rounded-xl p-4 border border-outline-variant">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-primary text-base">admin_panel_settings</span>
+                <h4 className="font-bold text-xs uppercase tracking-wider text-on-surface">
+                  Munshi Operator Privileges & Domain Policy (اختیارات و حدودِ کار)
+                </h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                <div className="flex items-start gap-2 p-2 rounded bg-surface-container border border-outline-variant/60">
+                  <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                  <div>
+                    <strong className="text-on-surface">Add / Enroll Fleet Drivers:</strong>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5">Register new vehicles into the Stand roster with 0% platform fee.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 p-2 rounded bg-surface-container border border-outline-variant/60">
+                  <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                  <div>
+                    <strong className="text-on-surface">Delete / Expel Drivers:</strong>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5">Remove departed or violating vehicles from stand queue.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 p-2 rounded bg-surface-container border border-outline-variant/60">
+                  <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                  <div>
+                    <strong className="text-on-surface">Set Offline / Suspend:</strong>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5">Temporarily block drivers from loading in the stand bays.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 p-2 rounded bg-surface-container border border-outline-variant/60">
+                  <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                  <div>
+                    <strong className="text-on-surface">Issue Parchis & Fares:</strong>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5">Issue 58mm thermal receipts & collect passenger counter cash.</p>
+                  </div>
+                </div>
+                <div className="col-span-1 md:col-span-2 flex items-start gap-2 p-2.5 rounded bg-amber-950/20 border border-amber-600/40">
+                  <span className="material-symbols-outlined text-amber-400 text-sm mt-0.5">lock</span>
+                  <div>
+                    <strong className="text-amber-300">Live Roaming Mode Switch Restriction:</strong>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5">
+                      The Munshi <strong>cannot</strong> force a driver to roam or return them from roaming. Roaming is the exclusive privilege of the driver inside their own mobile app.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Shift Cash Drawer & Handover Balance */}
+            <div className="bg-surface-container-highest/60 rounded-xl p-4 border border-outline-variant flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs uppercase font-bold text-on-surface-variant">Current Shift Financial Balance</span>
+                  <div className="text-2xl font-bold font-label-numeric-lg text-surface-tint mt-0.5">
+                    Rs. {cashCollected.toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-on-surface-variant">Departures Dispatched</span>
+                  <div className="text-lg font-bold text-primary mt-0.5">{departuresCount} Vehicles</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 pt-2 border-t border-outline-variant">
+                <button
+                  onClick={() => {
+                    setAlertMessage("Thermal printer issued Shift Reconciliation Parchi for Munshi Malik Aslam Khan. Cash drawer verified: Rs. " + cashCollected.toLocaleString());
+                  }}
+                  className="flex-1 py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant text-on-surface font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm text-primary">print</span>
+                  <span>Print Shift Handover Parchi (پرچی حساب کتاب)</span>
+                </button>
+                <button
+                  onClick={() => setShowMunshiProfileModal(false)}
+                  className="px-5 py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
