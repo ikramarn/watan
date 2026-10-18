@@ -7,6 +7,7 @@ import { api } from '../../src/lib/api';
 import Button from '../../src/components/Button';
 
 export default function Earnings() {
+  // Watan Driver Earnings & Raast Payouts
   const theme = getTheme('driver');
   const [data, setData] = useState<any>({
     total: 18450,
