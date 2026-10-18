@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ..db import db
 from ..deps import get_current_user, require_role
-from ..models import DriverKycSubmitIn, DriverPayoutIn, DriverStatusIn, LocationIn
+from ..models import DriverKycSubmitIn, DriverModeToggleIn, DriverPayoutIn, DriverStatusIn, LocationIn
 from ..services.compliance import verify_driver_compliance
 from ..services.dispatch_engine import dispatch_ride_waterfall
 from ..services.matching import can_consider, score_ride
@@ -133,6 +133,10 @@ async def driver_incoming(user: dict = Depends(require_role("driver"))):
     )
     if active:
         return {"request": None}
+
+    # When driver is in Adda Mode (loading in a Pari queue), doorstep rides are paused
+    if user.get("active_mode") == "adda":
+        return {"request": None, "mode": "adda", "message": "In Adda Pari mode; doorstep hailing paused"}
 
     # Check if there is an active reservation already assigned to this driver
     reserved = await db.rides.find_one(
@@ -695,3 +699,72 @@ async def driver_instant_payout(body: DriverPayoutIn, user: dict = Depends(requi
         "remaining_balance": round(current_balance - amount, 2),
         "message": f"Successfully initiated instant payout of ${amount:.2f}",
     }
+
+
+@router.post("/driver/mode")
+async def toggle_driver_mode(body: DriverModeToggleIn, user: dict = Depends(require_role("driver"))):
+    """
+    Switch between 'roaming' (Uber/Bykea style freelance doorstep hailing)
+    and 'adda' (Pari turn-based stand loading with 0% Watan commission).
+    """
+    mode = body.mode
+    adda_id = body.adda_id if mode == "adda" else None
+
+    update_fields = {
+        "active_mode": mode,
+        "current_adda_id": adda_id,
+        "geofence_status": "inside_adda" if mode == "adda" else "outside",
+        "updated_at": iso_now(),
+    }
+    await db.users.update_one({"id": user["id"]}, {"$set": update_fields})
+    await db.driver_status.update_one({"driver_id": user["id"]}, {"$set": update_fields})
+
+    await hub.publish_driver(user["id"], {"event": "driver.mode_changed", "mode": mode, "adda_id": adda_id})
+
+    return {
+        "ok": True,
+        "active_mode": mode,
+        "current_adda_id": adda_id,
+        "message": f"Switched to {'Adda Pari Mode (0% Platform Fee)' if mode == 'adda' else 'Independent Roaming Mode'}",
+    }
+
+
+@router.get("/driver/adda-status")
+async def get_driver_adda_status(user: dict = Depends(require_role("driver"))):
+    """
+    Returns the driver's current Pari queue position, bay assignment, and passenger manifest
+    when operating in Adda Mode.
+    """
+    driver = await db.users.find_one({"id": user["id"]})
+    active_mode = driver.get("active_mode", "roaming") if driver else "roaming"
+
+    if active_mode != "adda":
+        return {
+            "active_mode": "roaming",
+            "in_adda": False,
+            "message": "Driver is currently in Independent Roaming Mode",
+        }
+
+    adda_id = driver.get("current_adda_id")
+    pari_entry = await db.pari_queues.find_one(
+        {"driver_id": user["id"], "status": {"$in": ["waiting_in_bay", "loading", "ready_to_depart"]}}
+    )
+
+    manifest = []
+    if pari_entry:
+        async for booking in db.seat_bookings.find({"pari_id": pari_entry["id"]}):
+            manifest.append(clean_doc(booking))
+
+    adda_info = None
+    if adda_id:
+        adda_info = await db.addas.find_one({"id": adda_id})
+
+    return {
+        "active_mode": "adda",
+        "in_adda": True,
+        "adda": clean_doc(adda_info) if adda_info else None,
+        "pari": clean_doc(pari_entry) if pari_entry else None,
+        "passenger_manifest": manifest,
+        "commission_rate": "0% (Adda Fleet Member - Keep 100% of Fares)",
+    }
+

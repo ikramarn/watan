@@ -10,6 +10,7 @@ from starlette.middleware.cors import CORSMiddleware
 from .config import settings
 from .db import db, shutdown_db, startup_indexes
 from .middleware import InMemoryRateLimitMiddleware, RequestContextMiddleware
+from .routers.addas import router as addas_router
 from .routers.auth import router as auth_router
 from .routers.chat import router as chat_router
 from .routers.dispatch import router as dispatch_router
@@ -18,11 +19,12 @@ from .routers.health import router as health_router
 from .routers.payments import router as payments_router
 from .routers.public import router as public_router
 from .routers.rides import router as rides_router
+from .routers.seats import router as seats_router
 from .routers.ws import router as ws_router
 from .security import hash_password
 from .utils import iso_now
 
-app = FastAPI(title="GetChum API", version="2.0.0")
+app = FastAPI(title="Watan Mobility API (وطن)", version="2.0.0")
 
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(InMemoryRateLimitMiddleware)
@@ -43,6 +45,8 @@ app.include_router(chat_router)
 app.include_router(payments_router)
 app.include_router(ws_router)
 app.include_router(dispatch_router)
+app.include_router(addas_router)
+app.include_router(seats_router)
 
 
 @app.exception_handler(RequestValidationError)

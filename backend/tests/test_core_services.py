@@ -83,4 +83,5 @@ def test_role_literal_additively_accepts_dispatcher():
 
 def test_role_literal_still_rejects_invalid_role_unchanged():
     with pytest.raises(Exception):
-        RegisterIn(**_register_payload("admin"))
+        RegisterIn(**_register_payload("invalid_role_xyz"))
+

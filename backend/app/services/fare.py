@@ -1,105 +1,165 @@
 from typing import Any, Dict, Optional
 
-CURRENCY = "GBP"
-CURRENCY_SYMBOL = "£"
+CURRENCY = "PKR"
+CURRENCY_SYMBOL = "Rs."
 
-# UK Private Hire Fare Structure
+# Pakistani Multi-Modal Fare Structure
 FARE_CONFIG = {
+    "bike": {
+        "base": 60.0,
+        "per_km": 22.0,
+        "per_min": 3.0,
+        "min_fare": 80.0,
+        "cancel_fee": 40.0,
+        "label": "Watan Bike (موٹرسائیکل)",
+        "seats": 1,
+    },
+    "rickshaw": {
+        "base": 100.0,
+        "per_km": 35.0,
+        "per_min": 4.0,
+        "min_fare": 140.0,
+        "cancel_fee": 60.0,
+        "label": "Auto Rickshaw (رکشہ)",
+        "seats": 3,
+    },
+    "qingqi": {
+        "base": 40.0,
+        "per_km": 15.0,
+        "per_min": 2.0,
+        "min_fare": 50.0,
+        "cancel_fee": 30.0,
+        "label": "Watan Qingqi (چنگچی شٹل)",
+        "seats": 8,
+    },
+    "car_mini": {
+        "base": 200.0,
+        "per_km": 50.0,
+        "per_min": 6.0,
+        "min_fare": 280.0,
+        "cancel_fee": 100.0,
+        "label": "Watan Mini (مہران / آلٹو)",
+        "seats": 4,
+    },
+    "car_comfort": {
+        "base": 300.0,
+        "per_km": 70.0,
+        "per_min": 8.0,
+        "min_fare": 450.0,
+        "cancel_fee": 150.0,
+        "label": "Watan Comfort (سڈان کار)",
+        "seats": 4,
+    },
+    "wagon": {
+        "base": 120.0,
+        "per_km": 30.0,
+        "per_min": 4.0,
+        "min_fare": 200.0,
+        "cancel_fee": 100.0,
+        "label": "Watan Wagon (ہائی ایس ویگن)",
+        "seats": 14,
+    },
+    "coaster": {
+        "base": 250.0,
+        "per_km": 40.0,
+        "per_min": 5.0,
+        "min_fare": 350.0,
+        "cancel_fee": 150.0,
+        "label": "Watan Coaster (کوسٹر بس)",
+        "seats": 28,
+    },
+    # Backwards compatibility aliases
     "economy": {
-        "base": 3.00,
-        "per_km": 1.30,
-        "per_min": 0.25,
-        "min_fare": 5.00,
-        "cancel_fee": 4.00,
-        "label": "Economy Taxi",
+        "base": 200.0,
+        "per_km": 50.0,
+        "per_min": 6.0,
+        "min_fare": 280.0,
+        "cancel_fee": 100.0,
+        "label": "Economy Mini",
         "seats": 4,
     },
     "premium": {
-        "base": 5.50,
-        "per_km": 2.20,
-        "per_min": 0.40,
-        "min_fare": 10.00,
-        "cancel_fee": 7.00,
-        "label": "Executive / Premium",
+        "base": 300.0,
+        "per_km": 70.0,
+        "per_min": 8.0,
+        "min_fare": 450.0,
+        "cancel_fee": 150.0,
+        "label": "Comfort Sedan",
         "seats": 4,
     },
     "xl": {
-        "base": 4.50,
-        "per_km": 1.90,
-        "per_min": 0.35,
-        "min_fare": 8.00,
-        "cancel_fee": 6.00,
-        "label": "XL / 6-Seater",
-        "seats": 6,
+        "base": 400.0,
+        "per_km": 75.0,
+        "per_min": 8.0,
+        "min_fare": 600.0,
+        "cancel_fee": 200.0,
+        "label": "XL / Grand Cabin Full Charter",
+        "seats": 14,
     },
 }
 
-# In Route B (SaaS Technology Provider), platform charges a modest technology service fee (e.g. 8%)
-SAAS_TECH_FEE_RATE = 0.08  # 8% technology platform fee; 92% retained by 1-car licensed operator
+# Platform commission rate for independent roaming drivers (10%)
+# For Adda-affiliated drivers, commission is 0.00 (covered by the weekly Adda subscription)
+INDEPENDENT_COMMISSION_RATE = 0.10
+ADDA_DRIVER_COMMISSION_RATE = 0.00
 
 
 def calculate_surge_multiplier(active_requests_in_zone: int, available_drivers_in_zone: int) -> float:
     """
-    Dynamic surge pricing based on supply-demand ratio in the local UK zone.
-    Returns a multiplier from 1.0x (standard) up to 2.5x (peak demand).
+    Dynamic surge pricing based on local Pakistani traffic and peak demand hours.
+    Returns a multiplier from 1.0x (standard) up to 2.2x (peak rain/rush hour).
     """
     if available_drivers_in_zone <= 0:
-        return 1.8 if active_requests_in_zone > 0 else 1.0
+        return 1.6 if active_requests_in_zone > 0 else 1.0
 
     ratio = active_requests_in_zone / float(available_drivers_in_zone)
     if ratio <= 1.0:
         return 1.0
     elif ratio <= 1.5:
-        return 1.2
+        return 1.15
     elif ratio <= 2.5:
-        return 1.5
+        return 1.35
     elif ratio <= 4.0:
-        return 1.8
+        return 1.6
     else:
-        return 2.5
+        return 2.0
 
 
-def compute_fare(
+def estimate_fare(
     distance_km: float,
-    ride_type: str,
-    duration_min: Optional[float] = None,
-    surge_multiplier: float = 1.0,
-    tips: float = 0.0,
+    duration_min: float,
+    ride_type: str = "car_mini",
+    surge: float = 1.0,
 ) -> Dict[str, Any]:
-    cfg = FARE_CONFIG.get(ride_type, FARE_CONFIG["economy"])
+    """Calculate transparent Pakistani Rupee fare estimate."""
+    cfg = FARE_CONFIG.get(ride_type, FARE_CONFIG["car_mini"])
 
-    if duration_min is None:
-        duration_min = max(3.0, distance_km * 2.5)
-
-    base_component = cfg["base"]
-    distance_component = distance_km * cfg["per_km"]
-    time_component = duration_min * cfg["per_min"]
-
-    subtotal = (base_component + distance_component + time_component) * max(1.0, surge_multiplier)
-    fare = round(max(cfg.get("min_fare", 5.0), subtotal), 2)
-
-    total_with_tip = round(fare + max(0.0, tips), 2)
-
-    # Route B: Software technology fee vs operator earnings
-    platform_fee = round(fare * SAAS_TECH_FEE_RATE, 2)
-    driver_earnings = round((fare - platform_fee) + max(0.0, tips), 2)
+    raw = cfg["base"] + (distance_km * cfg["per_km"]) + (duration_min * cfg["per_min"])
+    surged = raw * surge
+    final_fare = max(cfg["min_fare"], round(surged, 0))
 
     return {
-        "type": ride_type,
+        "ride_type": ride_type,
         "label": cfg["label"],
-        "seats": cfg.get("seats", 4),
         "currency": CURRENCY,
         "currency_symbol": CURRENCY_SYMBOL,
-        "base_fare": round(base_component, 2),
-        "distance_fare": round(distance_component, 2),
-        "time_fare": round(time_component, 2),
-        "surge_multiplier": round(surge_multiplier, 2),
-        "fare": fare,
-        "tips": round(tips, 2),
-        "total_amount": total_with_tip,
-        "platform_fee": platform_fee,
-        "driver_earnings": driver_earnings,
-        "cancellation_fee": cfg.get("cancel_fee", 4.0),
-        "distance_km": round(distance_km, 2),
-        "duration_min": round(duration_min, 1),
+        "base_fare": cfg["base"],
+        "distance_fare": round(distance_km * cfg["per_km"], 0),
+        "time_fare": round(duration_min * cfg["per_min"], 0),
+        "surge_multiplier": surge,
+        "estimated_fare": final_fare,
+        "seats": cfg["seats"],
     }
+
+
+def compute_fare(distance_km: float, ride_type: str = "car_mini") -> Dict[str, Any]:
+    """Helper for deterministic test compatibility."""
+    duration_min = distance_km * 2.0
+    est = estimate_fare(distance_km, duration_min, ride_type)
+    return {
+        "fare": est["estimated_fare"],
+        "currency": CURRENCY,
+        "ride_type": ride_type,
+        "details": est,
+    }
+
