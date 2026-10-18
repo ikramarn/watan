@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +14,7 @@ export default function DriverProfile() {
 
   const [operatingMode, setOperatingMode] = useState<'adda_pari' | 'roaming'>('adda_pari');
   const [isAddaEnrolled, setIsAddaEnrolled] = useState(true);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const toggleOperatingMode = () => {
     if (operatingMode === 'adda_pari') {
@@ -118,6 +119,25 @@ export default function DriverProfile() {
           </View>
         </View>
 
+        {/* Stand Fleet QR Button */}
+        <TouchableOpacity
+          onPress={() => setShowQrModal(true)}
+          style={[styles.qrButtonCard, { backgroundColor: '#00683720', borderColor: '#59DF89' }]}
+        >
+          <View style={styles.qrIconBox}>
+            <Ionicons name="qr-code" size={24} color="#59DF89" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: '#59DF89', fontSize: 14, fontWeight: '800' }}>
+              Adda Fleet Enrollment Pass (اڈہ رجسٹریشن پاس)
+            </Text>
+            <Text style={{ color: '#869487', fontSize: 11, marginTop: 2 }}>
+              Tap to show Driver Pass QR & CNIC to Stand Munshi
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#59DF89" />
+        </TouchableOpacity>
+
         {/* Verified Documents Checklist */}
         <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
           <Text style={{ color: theme.textDim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8 }}>
@@ -165,6 +185,63 @@ export default function DriverProfile() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Driver Pass QR Modal for Munshi Stand Enrollment */}
+      <Modal visible={showQrModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.passModal, { backgroundColor: theme.surface, borderColor: '#59DF89' }]}>
+            <View style={styles.passHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ fontSize: 18 }}>🇵🇰</Text>
+                <View>
+                  <Text style={{ color: '#59DF89', fontSize: 15, fontWeight: '900' }}>WATAN CAPTAIN PASS</Text>
+                  <Text style={{ color: '#869487', fontSize: 11 }}>وطـن ڈرائیور رجسٹریشن پاس</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setShowQrModal(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ padding: 20, alignItems: 'center', gap: 12 }}>
+              <View style={styles.qrContainer}>
+                <Ionicons name="qr-code" size={130} color="#004D27" />
+                <Text style={styles.qrHint}>Scan at Adda Stand POS Terminal</Text>
+              </View>
+
+              <View style={[styles.infoBox, { backgroundColor: theme.surfaceAlt }]}>
+                <View style={styles.infoRow}>
+                  <Text style={{ color: theme.textDim, fontSize: 12 }}>Driver Name:</Text>
+                  <Text style={{ color: theme.text, fontSize: 13, fontWeight: '700' }}>{user?.name || 'Tariq Mahmood'}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={{ color: theme.textDim, fontSize: 12 }}>NADRA CNIC:</Text>
+                  <Text style={{ color: theme.text, fontSize: 13, fontWeight: '700' }}>37405-1829101-1</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={{ color: theme.textDim, fontSize: 12 }}>Vehicle Plate:</Text>
+                  <Text style={{ color: '#59DF89', fontSize: 14, fontWeight: '800' }}>{user?.vehicle_plate || 'LES-19-4821'}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={{ color: theme.textDim, fontSize: 12 }}>Vehicle Type:</Text>
+                  <Text style={{ color: theme.text, fontSize: 12, fontWeight: '600' }}>Toyota HiAce Grand Cabin (14-S)</Text>
+                </View>
+              </View>
+
+              <Text style={styles.explainerText}>
+                Show this code or CNIC to the Adda Munshi at the Stand POS Counter. Once enrolled, you receive Stand departures with 0% Watan platform commission.
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => setShowQrModal(false)}
+                style={[styles.dismissBtn, { backgroundColor: '#006837' }]}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>Close Pass (بند کریں)</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -178,9 +255,93 @@ const styles = StyleSheet.create({
   modeCard: { marginHorizontal: 20, marginTop: 12, padding: 18, borderRadius: 22, borderWidth: 1 },
   vehicleCard: { marginHorizontal: 20, marginTop: 12, padding: 18, borderRadius: 22, borderWidth: 1 },
   tag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  qrButtonCard: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  qrIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#00683740',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   docCard: { borderRadius: 18, borderWidth: 1, paddingHorizontal: 14 },
   docRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
   row: { padding: 16, borderRadius: 16, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoutBtn: { height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  passModal: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+  },
+  passHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#151D1B',
+    borderBottomWidth: 1,
+    borderBottomColor: '#27332F',
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#27332F',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrContainer: {
+    backgroundColor: '#F8FAF5',
+    padding: 16,
+    borderRadius: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E1E3DE',
+  },
+  qrHint: { color: '#004D27', fontSize: 11, fontWeight: '700', marginTop: 6 },
+  infoBox: {
+    width: '100%',
+    padding: 14,
+    borderRadius: 16,
+    gap: 8,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  explainerText: {
+    color: '#869487',
+    fontSize: 11,
+    textAlign: 'center',
+    lineHeight: 16,
+    paddingHorizontal: 10,
+  },
+  dismissBtn: {
+    width: '100%',
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
 });
 

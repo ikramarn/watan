@@ -1,4 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+
+declare global {
+  interface Window {
+    L: any;
+  }
+}
+
+export interface FleetVehicleTelemetry {
+  id: string;
+  plate: string;
+  driverName: string;
+  urduDriverName: string;
+  phone: string;
+  vehicleType: string;
+  corridor: string;
+  lat: number;
+  lng: number;
+  locationName: string;
+  speedKmH: number;
+  status: "in_bay" | "en_route" | "roaming";
+  statusLabel: string;
+  seatsBooked: number;
+  totalSeats: number;
+  heading: string;
+  fareCollected: number;
+  departureTime?: string;
+}
 
 interface Bay {
   id: string;
@@ -40,11 +67,118 @@ export interface EnrolledDriver {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"operations" | "fleet">("operations");
+  const [activeTab, setActiveTab] = useState<"operations" | "fleet" | "map">("operations");
   const [timeStr, setTimeStr] = useState<string>("");
   const [cashCollected, setCashCollected] = useState<number>(142500);
   const [departuresCount, setDeparturesCount] = useState<number>(38);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  // Live Fleet GPS & Map State
+  const mapRef = useRef<any>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>("v_1");
+  const [mapViewMode, setMapViewMode] = useState<"roadmap" | "satellite">("roadmap");
+  const [mapFilter, setMapFilter] = useState<"all" | "peshawar" | "lahore" | "saddar" | "roaming">("all");
+
+  const [fleetVehicles, setFleetVehicles] = useState<FleetVehicleTelemetry[]>([
+    {
+      id: "v_1",
+      plate: "LES-19-4821",
+      driverName: "Tariq Mahmood",
+      urduDriverName: "طارق محمود",
+      phone: "0300-5554921",
+      vehicleType: "Toyota HiAce Grand Cabin (14-S)",
+      corridor: "Pirwadhai to Peshawar Line",
+      lat: 33.6263,
+      lng: 73.0481,
+      locationName: "Al-Makkah Stand Bay #2 (Loading)",
+      speedKmH: 0,
+      status: "in_bay",
+      statusLabel: "In Bay #2 • Departs 08:30 PM",
+      seatsBooked: 11,
+      totalSeats: 14,
+      heading: "NW 315°",
+      fareCollected: 4950,
+      departureTime: "08:30 PM",
+    },
+    {
+      id: "v_2",
+      plate: "RIP-21-9921",
+      driverName: "Rafiq Ahmad",
+      urduDriverName: "رفیق احمد",
+      phone: "0321-4455667",
+      vehicleType: "Toyota Coaster Executive (28-S)",
+      corridor: "Rawalpindi to Lahore Motorway Line",
+      lat: 33.3212,
+      lng: 72.8450,
+      locationName: "M-2 Motorway (Near Chakri Rest Area)",
+      speedKmH: 94,
+      status: "en_route",
+      statusLabel: "En Route to Lahore • Speed: 94 km/h",
+      seatsBooked: 28,
+      totalSeats: 28,
+      heading: "SE 135°",
+      fareCollected: 23800,
+      departureTime: "08:15 PM",
+    },
+    {
+      id: "v_3",
+      plate: "RWP-18-3011",
+      driverName: "Bilal Khan",
+      urduDriverName: "بلال خان",
+      phone: "0345-9988112",
+      vehicleType: "Sazgar 9-Seater Qingqi Shuttle",
+      corridor: "Pirwadhai to Saddar Shuttle",
+      lat: 33.6145,
+      lng: 73.0610,
+      locationName: "Liaquat Bagh Chowk, Rawalpindi",
+      speedKmH: 32,
+      status: "en_route",
+      statusLabel: "In Transit • Speed: 32 km/h",
+      seatsBooked: 5,
+      totalSeats: 9,
+      heading: "S 180°",
+      fareCollected: 200,
+    },
+    {
+      id: "v_4",
+      plate: "RWP-14-5541",
+      driverName: "Arshad Mehmood",
+      urduDriverName: "ارشد محمود",
+      phone: "0333-8877665",
+      vehicleType: "Suzuki Bolan (7-Seater)",
+      corridor: "Rawalpindi - Murree Express",
+      lat: 33.6420,
+      lng: 73.0710,
+      locationName: "Commercial Market, Satellite Town",
+      speedKmH: 38,
+      status: "roaming",
+      statusLabel: "Independent Roaming • Ready for Hail",
+      seatsBooked: 2,
+      totalSeats: 7,
+      heading: "NE 45°",
+      fareCollected: 700,
+    },
+    {
+      id: "v_5",
+      plate: "ICT-22-4012",
+      driverName: "Sajid Gul",
+      urduDriverName: "ساجد گل",
+      phone: "0313-9876543",
+      vehicleType: "Toyota HiAce Grand Cabin (14-S)",
+      corridor: "Pirwadhai to Peshawar Line",
+      lat: 33.7420,
+      lng: 72.8050,
+      locationName: "N-5 Grand Trunk Road (Taxila Bypass)",
+      speedKmH: 82,
+      status: "en_route",
+      statusLabel: "En Route to Peshawar • Speed: 82 km/h",
+      seatsBooked: 14,
+      totalSeats: 14,
+      heading: "W 270°",
+      fareCollected: 6300,
+      departureTime: "07:45 PM",
+    },
+  ]);
 
   // Stand fleet enrolled drivers
   const [enrolledDrivers, setEnrolledDrivers] = useState<EnrolledDriver[]>([
@@ -351,6 +485,100 @@ export default function App() {
     );
   };
 
+  const handleCenterMapOnVehicle = (vehicle: FleetVehicleTelemetry) => {
+    setSelectedVehicleId(vehicle.id);
+    if (mapRef.current) {
+      mapRef.current.flyTo([vehicle.lat, vehicle.lng], 14, { duration: 1.2 });
+    }
+  };
+
+  // Live Fleet Leaflet Map Initialization
+  useEffect(() => {
+    if (activeTab !== "map") {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (typeof window !== "undefined" && window.L && !mapRef.current) {
+        const container = document.getElementById("fleet-leaflet-map");
+        if (!container) return;
+
+        const map = window.L.map("fleet-leaflet-map", {
+          center: [33.6261, 73.0479],
+          zoom: 11,
+          zoomControl: true,
+        });
+
+        const tileUrl =
+          mapViewMode === "satellite"
+            ? "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+            : "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}";
+
+        window.L.tileLayer(tileUrl, {
+          maxZoom: 19,
+          attribution: "© Google Maps • Watan Transit",
+        }).addTo(map);
+
+        // Stand Hub Marker (Pirwadhai Al-Makkah Stand)
+        const standIcon = window.L.divIcon({
+          className: "custom-stand-icon",
+          html: `<div style="background:#006837; color:#fff; padding:6px 10px; border-radius:12px; font-weight:800; font-size:11px; border:2px solid #59df89; box-shadow:0 4px 12px rgba(0,0,0,0.5); display:flex; align-items:center; gap:4px; white-space:nowrap;">
+            <span>🏢</span> Al-Makkah Stand (Stand Hub)
+          </div>`,
+          iconSize: [160, 32],
+          iconAnchor: [80, 16],
+        });
+        window.L.marker([33.6261, 73.0479], { icon: standIcon }).addTo(map)
+          .bindPopup("<b>Al-Makkah Wagon Stand, Pirwadhai</b><br>Stand Hub #ISB-001 • 3 Active Bays");
+
+        // Geofence Circle around Stand (1.5 km radius)
+        window.L.circle([33.6261, 73.0479], {
+          color: "#59df89",
+          fillColor: "#006837",
+          fillOpacity: 0.15,
+          radius: 1200,
+        }).addTo(map);
+
+        // Vehicle Markers
+        fleetVehicles.forEach((veh) => {
+          const isSelected = selectedVehicleId === veh.id;
+          const markerHtml = `
+            <div style="background:${veh.status === 'in_bay' ? '#006837' : veh.status === 'en_route' ? '#0284c7' : '#eab308'}; color:#fff; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:10px; border:2px solid ${isSelected ? '#fff' : '#000'}; box-shadow:0 3px 8px rgba(0,0,0,0.4); display:flex; align-items:center; gap:4px; cursor:pointer;">
+              <span>${veh.vehicleType.includes('Coaster') ? '🚌' : veh.vehicleType.includes('Qingqi') ? '🛺' : '🚐'}</span>
+              <span>${veh.plate}</span>
+              ${veh.speedKmH > 0 ? `<span style="background:rgba(0,0,0,0.3); padding:1px 4px; border-radius:4px; font-size:9px;">${veh.speedKmH}km/h</span>` : ''}
+            </div>
+          `;
+          const icon = window.L.divIcon({
+            className: "custom-veh-icon",
+            html: markerHtml,
+            iconSize: [120, 28],
+            iconAnchor: [60, 14],
+          });
+          const m = window.L.marker([veh.lat, veh.lng], { icon }).addTo(map);
+          m.on("click", () => {
+            setSelectedVehicleId(veh.id);
+            map.flyTo([veh.lat, veh.lng], 14, { duration: 1 });
+          });
+        });
+
+        mapRef.current = map;
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [activeTab, mapViewMode, selectedVehicleId]);
+
   return (
     <div className="bg-background text-on-surface min-h-screen flex flex-col font-body-md select-none">
       {/* Top Header */}
@@ -501,17 +729,33 @@ export default function App() {
                 {enrolledDrivers.length}
               </span>
             </button>
+            <button
+              onClick={() => setActiveTab("map")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all ${
+                activeTab === "map"
+                  ? "bg-primary text-on-primary shadow-md"
+                  : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">radar</span>
+              <span>Live Fleet Radar & GPS Map (لائیو فلیٹ نقشہ)</span>
+              <span className="flex h-2 w-2 relative ml-1">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+            </button>
           </div>
 
-          {activeTab === "fleet" && (
-            <button
-              onClick={() => setShowEnrollModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-tint text-on-primary font-bold text-xs uppercase tracking-wider shadow hover:bg-opacity-90 transition-all self-start sm:self-auto"
-            >
-              <span className="material-symbols-outlined text-sm">person_add</span>
-              <span>Enroll New Driver</span>
-            </button>
-          )}
+          <button
+            onClick={() => {
+              setActiveTab("fleet");
+              setShowEnrollModal(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-tint hover:bg-primary text-on-primary font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all self-start sm:self-auto"
+          >
+            <span className="material-symbols-outlined text-sm">person_add</span>
+            <span>+ Enroll Driver to Fleet (ڈرائیور رجسٹریشن)</span>
+          </button>
         </div>
 
         {activeTab === "operations" && (
@@ -995,6 +1239,296 @@ export default function App() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* LIVE FLEET RADAR & GPS MAP (لائیو فلیٹ نقشہ اور جی پی ایس ٹیلی میٹری)     */}
+        {/* ========================================================================= */}
+        {activeTab === "map" && (
+          <div className="flex flex-col gap-5 flex-1">
+            {/* Top Toolbar */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h3 className="font-headline-sm text-lg font-bold text-on-surface">
+                    Pakistan Live Fleet Radar & GPS Map
+                  </h3>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-600/50 text-emerald-400 text-[10px] font-bold font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    LIVE GPS TELEMETRY
+                  </span>
+                </div>
+                <p className="font-urdu-sub text-xs text-on-surface-variant mt-0.5">
+                  راولپنڈی، اسلام آباد، موٹروے M-2 اور جی ٹی روڈ پر رواں دواں گاڑیوں کی لائیو لوکیشن اور رفتار
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex rounded-lg border border-outline-variant bg-surface-container overflow-hidden p-0.5 text-xs font-bold">
+                  <button
+                    onClick={() => setMapViewMode("roadmap")}
+                    className={`px-3 py-1.5 rounded-md transition-all ${
+                      mapViewMode === "roadmap"
+                        ? "bg-primary text-on-primary shadow-sm"
+                        : "text-on-surface-variant hover:text-on-surface"
+                    }`}
+                  >
+                    Roadmap (سڑک کا نقشہ)
+                  </button>
+                  <button
+                    onClick={() => setMapViewMode("satellite")}
+                    className={`px-3 py-1.5 rounded-md transition-all ${
+                      mapViewMode === "satellite"
+                        ? "bg-primary text-on-primary shadow-sm"
+                        : "text-on-surface-variant hover:text-on-surface"
+                    }`}
+                  >
+                    Satellite (سیٹلائٹ)
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setSelectedVehicleId(null);
+                    if (mapRef.current) {
+                      mapRef.current.flyTo([33.6261, 73.0479], 13, { duration: 1 });
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant text-xs font-bold transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">my_location</span>
+                  <span>Center Stand Hub (اڈہ مرکز)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Telemetry KPI Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block">
+                    Active on Radar
+                  </span>
+                  <span className="font-headline-sm text-xl font-bold text-on-surface">
+                    {fleetVehicles.length} Vehicles
+                  </span>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center">
+                  <span className="material-symbols-outlined text-base">local_shipping</span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                    In Stand Loading Bay
+                  </span>
+                  <span className="font-headline-sm text-xl font-bold text-emerald-400">
+                    {fleetVehicles.filter((v) => v.status === "in_bay").length} Vehicle
+                  </span>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-emerald-950/70 border border-emerald-600/40 text-emerald-400 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-base">domain</span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">
+                    En Route on Corridors
+                  </span>
+                  <span className="font-headline-sm text-xl font-bold text-sky-400">
+                    {fleetVehicles.filter((v) => v.status === "en_route").length} High-Speed
+                  </span>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-sky-950/70 border border-sky-600/40 text-sky-400 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-base">speed</span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                    City Roaming
+                  </span>
+                  <span className="font-headline-sm text-xl font-bold text-amber-400">
+                    {fleetVehicles.filter((v) => v.status === "roaming").length} Shuttles
+                  </span>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-amber-950/70 border border-amber-600/40 text-amber-400 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-base">share_location</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Split Screen: Map (Left 65%) + Telemetry Vehicle Roster (Right 35%) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Map Container */}
+              <div className="lg:col-span-8 flex flex-col gap-3">
+                <div className="relative rounded-2xl overflow-hidden border border-outline-variant shadow-2xl bg-surface-container-lowest">
+                  {/* Map DOM Canvas */}
+                  <div id="fleet-leaflet-map" className="w-full h-[620px] z-0"></div>
+
+                  {/* Geofence HUD Badge */}
+                  <div className="absolute top-4 left-4 z-10 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-outline-variant text-[11px] font-mono flex items-center gap-2 shadow-lg">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>STAND GEOFENCE: <strong>1.2 KM ACTIVE</strong></span>
+                  </div>
+
+                  {/* Map Legend */}
+                  <div className="absolute bottom-4 left-4 right-4 z-10 bg-surface-container-lowest/95 backdrop-blur-md p-2.5 rounded-xl border border-outline-variant flex flex-wrap items-center justify-between gap-3 text-[11px] shadow-lg">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className="w-3 h-3 rounded-full bg-[#006837] border border-emerald-400"></span>
+                        <span className="text-on-surface">Stand Loading Bay (0% Pari)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className="w-3 h-3 rounded-full bg-[#0284c7] border border-sky-400"></span>
+                        <span className="text-on-surface">En Route Corridors (M-2 / GT Road)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className="w-3 h-3 rounded-full bg-[#eab308] border border-amber-400"></span>
+                        <span className="text-on-surface">Independent Roaming</span>
+                      </div>
+                    </div>
+                    <span className="font-mono text-[10px] text-on-surface-variant">
+                      Google Maps Road Network
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vehicle Telemetry Cards */}
+              <div className="lg:col-span-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-on-surface">
+                    Fleet Vehicles on Radar ({fleetVehicles.length})
+                  </h4>
+                  <span className="text-[10px] text-primary font-mono font-bold">GPS ACTIVE</span>
+                </div>
+
+                <div className="flex flex-col gap-3 max-h-[620px] overflow-y-auto pr-1">
+                  {fleetVehicles.map((veh) => {
+                    const isSelected = selectedVehicleId === veh.id;
+                    return (
+                      <div
+                        key={veh.id}
+                        onClick={() => handleCenterMapOnVehicle(veh)}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          isSelected
+                            ? "bg-surface-container-high border-primary shadow-md ring-1 ring-primary"
+                            : "bg-surface-container-low border-outline-variant hover:border-outline hover:bg-surface-container"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${
+                                veh.status === "in_bay"
+                                  ? "bg-emerald-950/80 text-emerald-400 border border-emerald-600/40"
+                                  : veh.status === "en_route"
+                                  ? "bg-sky-950/80 text-sky-400 border border-sky-600/40"
+                                  : "bg-amber-950/80 text-amber-300 border border-amber-600/40"
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-base">
+                                {veh.vehicleType.includes("Coaster")
+                                  ? "directions_bus"
+                                  : veh.vehicleType.includes("Qingqi")
+                                  ? "electric_rickshaw"
+                                  : "airport_shuttle"}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <h5 className="font-bold text-sm text-on-surface">
+                                  {veh.plate}
+                                </h5>
+                                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">
+                                  {veh.vehicleType}
+                                </span>
+                              </div>
+                              <p className="text-xs text-on-surface-variant font-medium">
+                                {veh.driverName}
+                              </p>
+                            </div>
+                          </div>
+
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              veh.status === "in_bay"
+                                ? "bg-emerald-950/70 text-emerald-400"
+                                : veh.status === "en_route"
+                                ? "bg-sky-950/70 text-sky-400"
+                                : "bg-amber-950/70 text-amber-300"
+                            }`}
+                          >
+                            {veh.status === "in_bay"
+                              ? "In Bay #2"
+                              : veh.status === "en_route"
+                              ? "En Route"
+                              : "Roaming"}
+                          </span>
+                        </div>
+
+                        {/* Location and Telemetry */}
+                        <div className="mt-3 p-2.5 rounded-lg bg-surface-container text-xs flex flex-col gap-1 border border-outline-variant/60 font-mono">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-on-surface-variant">Location:</span>
+                            <strong className="text-on-surface truncate max-w-[180px] text-right">
+                              {veh.locationName}
+                            </strong>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-on-surface-variant">Corridor:</span>
+                            <span className="text-secondary font-bold truncate max-w-[180px] text-right">
+                              {veh.corridor}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] pt-1 border-t border-outline-variant/40">
+                            <span className="text-on-surface-variant">Speed / Load:</span>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`font-bold ${
+                                  veh.speedKmH > 70
+                                    ? "text-sky-400"
+                                    : veh.speedKmH > 0
+                                    ? "text-emerald-400"
+                                    : "text-on-surface-variant"
+                                }`}
+                              >
+                                {veh.speedKmH} km/h
+                              </span>
+                              <span className="text-on-surface font-bold">
+                                • {veh.seatsBooked}/{veh.totalSeats} Seats
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Focus Button */}
+                        <div className="mt-2.5 flex items-center justify-between">
+                          <span className="text-[10px] text-on-surface-variant font-mono">
+                            {veh.status === "in_bay" ? "0% Platform Fee" : "GPS Live Ping (2s)"}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCenterMapOnVehicle(veh);
+                            }}
+                            className="flex items-center gap-1 text-[11px] font-bold text-primary hover:text-surface-tint"
+                          >
+                            <span className="material-symbols-outlined text-sm">filter_center_focus</span>
+                            <span>Fly to Location (نقشہ پر دیکھیں)</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
