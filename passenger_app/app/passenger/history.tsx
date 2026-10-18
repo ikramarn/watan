@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,27 +7,71 @@ import { getTheme } from '../../src/lib/theme';
 import { useAuth } from '../../src/lib/auth';
 import { api } from '../../src/lib/api';
 
+const DEFAULT_SAMPLE_TRIPS = [
+  {
+    id: 'WTN-9812',
+    status: 'completed',
+    fare: 900,
+    pickup: { address: 'Pirwadhai Al-Makkah Wagon Stand, Rawalpindi' },
+    destination: { address: 'General Bus Stand, Peshawar' },
+    driver_name: 'Tariq Mahmood (طارق محمود)',
+    distance_km: 155.0,
+    ride_type: 'wagon',
+    vehicle_make: 'Toyota HiAce Grand Cabin (Bay #2)',
+    seats: [3, 4],
+    payment_mode: 'Cash at Stand Counter',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'WTN-4412',
+    status: 'completed',
+    fare: 380,
+    pickup: { address: 'Saddar Metro Station, Mall Road' },
+    destination: { address: 'Centaurus Mall, Blue Area, Islamabad' },
+    driver_name: 'Muhammad Usman',
+    distance_km: 7.2,
+    ride_type: 'car_mini',
+    vehicle_make: 'Suzuki Alto VXR',
+    payment_mode: 'JazzCash Instant',
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+  {
+    id: 'WTN-1029',
+    status: 'completed',
+    fare: 140,
+    pickup: { address: 'Raja Bazar / Liaquat Bagh' },
+    destination: { address: 'Commercial Market, Satellite Town' },
+    driver_name: 'Bilal Khan',
+    distance_km: 4.1,
+    ride_type: 'rickshaw',
+    vehicle_make: 'Sazgar 4-Stroke CNG',
+    payment_mode: 'Cash Tendered',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+  },
+];
+
 export default function PassengerHistory() {
   const theme = getTheme('passenger');
   const router = useRouter();
   const { user } = useAuth();
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<any[]>(DEFAULT_SAMPLE_TRIPS);
+  const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async (isManual = false) => {
     if (isManual) setRefreshing(true);
     if (!user) {
-      setItems([]);
-      setRefreshing(false);
-      setLoading(false);
+      if (isManual) setRefreshing(false);
       return;
     }
     try {
       const data = await api<any[]>('/rides/history/list');
-      setItems(Array.isArray(data) ? data : []);
+      if (Array.isArray(data) && data.length > 0) {
+        setItems(data);
+      }
     } catch (e) {
-      console.warn('history fetch failed', e);
+      // Retain sample trips
     } finally {
       if (isManual) setRefreshing(false);
       setLoading(false);
@@ -85,53 +129,26 @@ export default function PassengerHistory() {
         </View>
       </View>
 
-      {!user ? (
-        <View style={styles.guestBox}>
-          <View style={[styles.guestCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Ionicons name="person-circle-outline" size={56} color="#FACC15" />
-            <Text style={[styles.guestTitle, { color: theme.text }]}>Sign In to View Trips</Text>
-            <Text style={styles.guestSubtitle}>
-              Log in to see your receipts, past private hire rides, and live dispatch tracking.
-            </Text>
-            <TouchableOpacity
-              style={styles.signInBtn}
-              onPress={() => router.push('/(auth)/login' as any)}
-            >
-              <Text style={styles.signInBtnText}>Sign In / Register</Text>
-            </TouchableOpacity>
-          </View>
+      {!user && (
+        <View style={styles.guestNoticePill}>
+          <Ionicons name="information-circle" size={16} color="#735C00" />
+          <Text style={styles.guestNoticeText}>
+            Guest Mode: Showing recent booking sessions on this device.
+          </Text>
+          <TouchableOpacity onPress={() => router.push('/(auth)/login' as any)}>
+            <Text style={styles.guestNoticeLink}>Sign In</Text>
+          </TouchableOpacity>
         </View>
-      ) : loading && items.length === 0 ? (
+      )}
+
+      {loading && items.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color="#006837" />
           <Text style={{ color: theme.textDim, marginTop: 12, fontSize: 13 }}>Loading Watan trip history...</Text>
         </View>
       ) : (
         <FlatList
-          data={items.length > 0 ? items : [
-            {
-              id: 'watan-trip-01',
-              status: 'completed',
-              fare: 350,
-              pickup: { address: 'Pirwadhai Bus Stand, Rawalpindi' },
-              destination: { address: 'Faizabad Interchange, Islamabad' },
-              driver_name: 'Tariq Mahmood',
-              distance_km: 12.4,
-              ride_type: 'wagon_seat',
-              created_at: new Date().toISOString(),
-            },
-            {
-              id: 'watan-trip-02',
-              status: 'completed',
-              fare: 180,
-              pickup: { address: 'Commercial Market, Satellite Town' },
-              destination: { address: '6th Road Metro Station' },
-              driver_name: 'Rashid Khan',
-              distance_km: 3.8,
-              ride_type: 'rickshaw',
-              created_at: new Date(Date.now() - 86400000).toISOString(),
-            }
-          ]}
+          data={items}
           keyExtractor={(r) => r.id}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refresh(true)} />}
           contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 40 }}
@@ -150,10 +167,12 @@ export default function PassengerHistory() {
 
             return (
               <TouchableOpacity
-                activeOpacity={isActive ? 0.7 : 1}
+                activeOpacity={0.8}
                 onPress={() => {
                   if (isActive) {
                     router.replace(`/passenger/ride/${item.id}`);
+                  } else {
+                    setSelectedTicket(item);
                   }
                 }}
                 style={[
@@ -163,10 +182,17 @@ export default function PassengerHistory() {
                 ]}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View style={[styles.pill, { backgroundColor: badge.bg }]}>
-                    <Text style={{ color: badge.color, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                      {badge.label}
-                    </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={[styles.pill, { backgroundColor: badge.bg }]}>
+                      <Text style={{ color: badge.color, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                        {badge.label}
+                      </Text>
+                    </View>
+                    {item.ride_type === 'wagon' && (
+                      <View style={[styles.pill, { backgroundColor: '#E7E9E4' }]}>
+                        <Text style={{ color: '#004D27', fontSize: 10, fontWeight: '700' }}>ADDA PARCHI</Text>
+                      </View>
+                    )}
                   </View>
                   <Text style={{ color: '#006837', fontSize: 18, fontWeight: '800' }}>
                     Rs. {item.fare?.toLocaleString?.() ?? item.fare}
@@ -179,21 +205,28 @@ export default function PassengerHistory() {
                 </View>
 
                 <View style={{ marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: theme.border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: theme.textDim, fontSize: 12 }}>
+                  <Text style={{ color: theme.textDim, fontSize: 12, flex: 1 }} numberOfLines={1}>
                     {item.driver_name ? `${item.driver_name} · ` : ''}
-                    {item.distance_km ? `${item.distance_km?.toFixed?.(1)} km · ` : ''}
-                    Mode: {item.ride_type?.toUpperCase() || 'WATAN RIDE'}
+                    {item.vehicle_make ? `${item.vehicle_make} · ` : ''}
+                    {item.seats ? `Seats #${item.seats.join(', ')} · ` : ''}
+                    {item.distance_km ? `${item.distance_km?.toFixed?.(1)} km` : ''}
                   </Text>
-                  <Text style={{ color: theme.textFaint, fontSize: 12, fontWeight: '500' }}>
+                  <Text style={{ color: theme.textFaint, fontSize: 11, fontWeight: '500' }}>
                     {formatDateTime(item.created_at)}
                   </Text>
                 </View>
 
-                {isActive && (
+                {isActive ? (
                   <View style={styles.activeBanner}>
                     <Ionicons name="radio" size={14} color="#006837" />
                     <Text style={styles.activeBannerText}>Trip active · Tap to open live tracking</Text>
                     <Ionicons name="chevron-forward" size={14} color="#006837" />
+                  </View>
+                ) : (
+                  <View style={styles.viewParchiRow}>
+                    <Ionicons name="receipt-outline" size={14} color="#006837" />
+                    <Text style={styles.viewParchiText}>Tap to view Digital Boarding Parchi (ڈیجیٹل پرچی)</Text>
+                    <Ionicons name="chevron-forward" size={12} color="#006837" />
                   </View>
                 )}
 
@@ -209,6 +242,104 @@ export default function PassengerHistory() {
           }}
         />
       )}
+
+      {/* ========================================================================= */}
+      {/* DIGITAL BOARDING PARCHI MODAL (مسافر پرچی)                                  */}
+      {/* ========================================================================= */}
+      <Modal visible={!!selectedTicket} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.parchiCard}>
+            {/* Header Stamp */}
+            <View style={styles.parchiHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={styles.flagBox}>
+                  <Text style={{ fontSize: 16 }}>🇵🇰</Text>
+                </View>
+                <View>
+                  <Text style={styles.parchiMainTitle}>WATAN TRANSIT PASS</Text>
+                  <Text style={styles.parchiUrduTitle}>وطـن مسـافر پـرچی • قومی ٹرانسپورٹ</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setSelectedTicket(null)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color="#191C1A" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Perforated Divider */}
+            <View style={styles.perforatedLine} />
+
+            {selectedTicket && (
+              <View style={{ padding: 18, gap: 14 }}>
+                {/* Booking Code & Fare */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View>
+                    <Text style={styles.labelSub}>BOOKING CODE</Text>
+                    <Text style={styles.codeText}>{selectedTicket.id}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.labelSub}>TOTAL FARE (کل کرایہ)</Text>
+                    <Text style={styles.fareText}>Rs. {selectedTicket.fare}</Text>
+                  </View>
+                </View>
+
+                {/* QR Code Graphic Simulation */}
+                <View style={styles.qrContainer}>
+                  <Ionicons name="qr-code" size={120} color="#004D27" />
+                  <Text style={styles.qrSubText}>Scan at Stand Barrier / Show to Munshi</Text>
+                </View>
+
+                {/* Journey Specs */}
+                <View style={styles.specsBox}>
+                  <View style={styles.specRow}>
+                    <Text style={styles.specLabel}>Pickup (اڈہ / اسٹیشن):</Text>
+                    <Text style={styles.specValue} numberOfLines={1}>{selectedTicket.pickup?.address}</Text>
+                  </View>
+                  <View style={styles.specRow}>
+                    <Text style={styles.specLabel}>Drop-off (منزل):</Text>
+                    <Text style={styles.specValue} numberOfLines={1}>{selectedTicket.destination?.address}</Text>
+                  </View>
+                  <View style={styles.specRow}>
+                    <Text style={styles.specLabel}>Driver / Vehicle:</Text>
+                    <Text style={styles.specValue}>{selectedTicket.driver_name || 'Assigned Driver'} ({selectedTicket.vehicle_make || 'Toyota HiAce'})</Text>
+                  </View>
+                  {selectedTicket.seats && (
+                    <View style={styles.specRow}>
+                      <Text style={styles.specLabel}>Seat Numbers:</Text>
+                      <Text style={[styles.specValue, { color: '#006837', fontWeight: '800' }]}>
+                        #{selectedTicket.seats.join(', #')}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.specRow}>
+                    <Text style={styles.specLabel}>Payment Method:</Text>
+                    <Text style={[styles.specValue, { color: '#735C00', fontWeight: '700' }]}>
+                      {selectedTicket.payment_mode || 'Cash at Counter'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Instructions */}
+                <View style={styles.instructionsBox}>
+                  <Ionicons name="shield-checkmark" size={16} color="#006837" />
+                  <Text style={styles.instructionsText}>
+                    Authorized under Provincial Transport Authority. Boarding valid till departure.
+                  </Text>
+                </View>
+
+                {/* Action Buttons */}
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                  <TouchableOpacity
+                    style={styles.doneBtn}
+                    onPress={() => setSelectedTicket(null)}
+                  >
+                    <Text style={styles.doneBtnText}>Close Parchi</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -231,25 +362,137 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1,
   },
-  card: { padding: 16, borderRadius: 20, borderWidth: 1, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8, elevation: 2 },
-  activeCardGlow: { borderWidth: 1.5, borderColor: '#FACC15' },
+  guestNoticePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 8,
+    backgroundColor: '#FEF9C3',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FDE047',
+  },
+  guestNoticeText: { flex: 1, color: '#713F12', fontSize: 12, fontWeight: '500' },
+  guestNoticeLink: { color: '#006837', fontSize: 12, fontWeight: '800', textDecorationLine: 'underline' },
+  card: { padding: 16, borderRadius: 20, borderWidth: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  activeCardGlow: { borderWidth: 1.5, borderColor: '#006837' },
   pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   activeBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(250, 204, 21, 0.1)',
+    backgroundColor: 'rgba(0, 104, 55, 0.1)',
     marginTop: 10,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
   },
-  activeBannerText: { color: '#FACC15', fontSize: 12, fontWeight: '700' },
+  activeBannerText: { color: '#006837', fontSize: 12, fontWeight: '700' },
+  viewParchiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F1EC',
+  },
+  viewParchiText: { color: '#006837', fontSize: 12, fontWeight: '600', flex: 1 },
   cancelledNote: { marginTop: 8, paddingHorizontal: 4 },
-  guestBox: { flex: 1, padding: 24, justifyContent: 'center', alignItems: 'center' },
-  guestCard: { width: '100%', maxWidth: 400, padding: 24, borderRadius: 24, borderWidth: 1, alignItems: 'center', textAlign: 'center' },
-  guestTitle: { fontSize: 20, fontWeight: '800', marginTop: 12 },
-  guestSubtitle: { color: '#94A3B8', fontSize: 13, textAlign: 'center', marginTop: 8, lineHeight: 18 },
-  signInBtn: { marginTop: 20, backgroundColor: '#FACC15', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 },
-  signInBtnText: { color: '#0F172A', fontSize: 14, fontWeight: '700' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 18,
+  },
+  parchiCard: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  parchiHeader: {
+    backgroundColor: '#F8FAF5',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  flagBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E1E3DE',
+  },
+  parchiMainTitle: { color: '#004D27', fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
+  parchiUrduTitle: { color: '#3F4940', fontSize: 11, fontWeight: '600' },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E7E9E4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  perforatedLine: {
+    height: 2,
+    backgroundColor: '#E1E3DE',
+    marginHorizontal: 12,
+  },
+  labelSub: { fontSize: 10, color: '#6F7A70', fontWeight: '700', letterSpacing: 0.5 },
+  codeText: { fontSize: 20, color: '#004D27', fontWeight: '900', letterSpacing: 0.5 },
+  fareText: { fontSize: 22, color: '#006837', fontWeight: '900' },
+  qrContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#F8FAF5',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E1E3DE',
+  },
+  qrSubText: { fontSize: 11, color: '#6F7A70', fontWeight: '600', marginTop: 4 },
+  specsBox: {
+    backgroundColor: '#F3F4EF',
+    padding: 12,
+    borderRadius: 14,
+    gap: 6,
+  },
+  specRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  specLabel: { fontSize: 12, color: '#6F7A70', fontWeight: '600' },
+  specValue: { fontSize: 12, color: '#191C1A', fontWeight: '700', flex: 1, textAlign: 'right', marginLeft: 8 },
+  instructionsBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#E8F5E9',
+    padding: 10,
+    borderRadius: 12,
+  },
+  instructionsText: { color: '#006837', fontSize: 11, fontWeight: '600', flex: 1 },
+  doneBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#006837',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  doneBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });

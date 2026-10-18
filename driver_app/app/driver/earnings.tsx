@@ -146,6 +146,121 @@ export default function Earnings() {
             <Text style={[styles.badgeText, { color: '#59DF89' }]}>Settled Daily</Text>
           </View>
         </View>
+
+        {/* Recent Ledger History */}
+        <Text style={{ color: theme.text, fontSize: 16, fontWeight: '700', marginTop: 24, marginBottom: 10 }}>
+          Recent Transactions & Payouts (حالیہ لین دین)
+        </Text>
+        <View style={{ gap: 8 }}>
+          {[
+            {
+              id: 'tx-1',
+              title: 'Pirwadhai ➔ Peshawar Grand Cabin',
+              type: 'pari',
+              seats: '14/14 Seats Full',
+              time: 'Today, 08:30 PM',
+              amount: '+Rs. 6,300',
+              fee: 'Rs. 0 Platform Fee (Adda 100% Retained)',
+              isPositive: true,
+            },
+            {
+              id: 'tx-2',
+              title: 'Saddar Metro to Commercial Market',
+              type: 'roaming',
+              seats: 'Private Doorstep Hail',
+              time: 'Today, 05:15 PM',
+              amount: '+Rs. 350',
+              fee: '-Rs. 35 Platform Fee (10% Watan)',
+              isPositive: true,
+            },
+            {
+              id: 'tx-3',
+              title: 'Raast Instant Withdrawal to JazzCash',
+              type: 'payout',
+              seats: 'Ref: RST-98214',
+              time: 'Today, 02:00 PM',
+              amount: '-Rs. 3,500',
+              fee: '0% State Bank Raast P2M Fee',
+              isPositive: false,
+            },
+            {
+              id: 'tx-4',
+              title: 'Pirwadhai Turn #1 Morning Departure',
+              type: 'pari',
+              seats: '14 Seats Full',
+              time: 'Yesterday, 09:00 AM',
+              amount: '+Rs. 6,300',
+              fee: 'Rs. 0 Platform Fee (Adda Partner)',
+              isPositive: true,
+            },
+          ].map((tx) => (
+            <View
+              key={tx.id}
+              style={[
+                styles.txCard,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                  <View
+                    style={[
+                      styles.txIconBox,
+                      {
+                        backgroundColor:
+                          tx.type === 'pari'
+                            ? '#00683725'
+                            : tx.type === 'roaming'
+                            ? '#FACC1525'
+                            : '#EF444425',
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={
+                        tx.type === 'pari'
+                          ? 'bus'
+                          : tx.type === 'roaming'
+                          ? 'car'
+                          : 'arrow-up'
+                      }
+                      size={18}
+                      color={
+                        tx.type === 'pari'
+                          ? '#59DF89'
+                          : tx.type === 'roaming'
+                          ? '#FACC15'
+                          : '#EF4444'
+                      }
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '700' }} numberOfLines={1}>
+                      {tx.title}
+                    </Text>
+                    <Text style={{ color: theme.textDim, fontSize: 11, marginTop: 1 }}>
+                      {tx.time} · {tx.seats}
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
+                  <Text
+                    style={{
+                      color: tx.isPositive ? '#59DF89' : '#EF4444',
+                      fontSize: 16,
+                      fontWeight: '800',
+                    }}
+                  >
+                    {tx.amount}
+                  </Text>
+                  <Text style={{ color: '#869487', fontSize: 10, fontWeight: '600', marginTop: 1 }}>
+                    {tx.fee}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -170,4 +285,6 @@ const styles = StyleSheet.create({
   payout: { padding: 16, borderRadius: 18, borderWidth: 1, flexDirection: 'row', alignItems: 'center' },
   badge: { backgroundColor: '#10B98120', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1, borderColor: '#10B981' },
   badgeText: { color: '#10B981', fontSize: 11, fontWeight: '700' },
+  txCard: { padding: 14, borderRadius: 16, borderWidth: 1 },
+  txIconBox: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });

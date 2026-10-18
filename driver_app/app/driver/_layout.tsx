@@ -11,10 +11,10 @@ export default function DriverLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    if (ready && !user) router.replace('/(auth)/login');
-    if (ready && user && user.role !== 'driver')
+    if (ready && user && user.role === 'passenger') {
       router.replace('/(auth)/login');
-  }, [ready, user]);
+    }
+  }, [ready, user, router]);
 
   return (
     <Tabs

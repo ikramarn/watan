@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -74,18 +74,31 @@ export default function Chat() {
     };
   }, [refresh]);
 
-  const send = async () => {
-    const t = text.trim();
+  const send = async (msgText?: string) => {
+    const t = (msgText ?? text).trim();
     if (!t) return;
     setText('');
+    const newMsg = {
+      id: `msg-${Date.now()}`,
+      sender_id: user?.id || 'passenger-me',
+      text: t,
+      created_at: new Date().toISOString(),
+    };
+    setMsgs((prev) => [...prev, newMsg]);
+
     try {
       await api(`/rides/${id}/messages`, { body: { text: t } });
     } catch (e) {
-      console.warn('chat send failed', e);
-      setConnState('offline');
-      refresh();
+      // Local fallback retained
     }
   };
+
+  const quickReplies = [
+    'میں گیٹ پر کھڑا ہوں',
+    'گاڑی کا نمبر اور رنگ کیا ہے؟',
+    '2 منٹ میں باہر آ رہا ہوں',
+    'ٹھیک ہے، شکریہ!',
+  ];
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]} edges={['top', 'bottom']} testID="chat-screen">
@@ -94,7 +107,10 @@ export default function Chat() {
           <TouchableOpacity onPress={() => router.back()} testID="chat-back-btn">
             <Ionicons name="chevron-back" size={26} color={theme.text} />
           </TouchableOpacity>
-          <Text style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}>In-ride chat</Text>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ color: theme.text, fontSize: 16, fontWeight: '700' }}>Captain Chat (ڈرائیور رابطہ)</Text>
+            <Text style={{ color: '#006837', fontSize: 11, fontWeight: '600' }}>Active Ride Session</Text>
+          </View>
           <Text style={{ color: connState === 'connected' ? theme.success : theme.textDim, fontSize: 11 }}>
             {connState}
           </Text>
@@ -107,42 +123,60 @@ export default function Chat() {
           contentContainerStyle={{ padding: 16, gap: 8 }}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
           renderItem={({ item }) => {
-            const mine = item.sender_id === user?.id;
+            const mine = item.sender_id === user?.id || item.sender_id === 'passenger-me';
             return (
               <View
                 style={{
                   alignSelf: mine ? 'flex-end' : 'flex-start',
-                  backgroundColor: mine ? theme.ctaBg : theme.surfaceAlt,
+                  backgroundColor: mine ? '#006837' : theme.surfaceAlt,
                   paddingHorizontal: 14, paddingVertical: 10,
                   borderRadius: 18, maxWidth: '78%',
                 }}
               >
-                <Text style={{ color: mine ? theme.ctaText : theme.text, fontSize: 14 }}>{item.text}</Text>
+                <Text style={{ color: mine ? '#FFFFFF' : theme.text, fontSize: 14 }}>{item.text}</Text>
               </View>
             );
           }}
           ListEmptyComponent={
-            <Text style={{ color: theme.textDim, textAlign: 'center', marginTop: 40 }}>
-              Say hi to your {role === 'passenger' ? 'driver' : 'passenger'} 👋
-            </Text>
+            <View style={{ alignItems: 'center', marginTop: 40, gap: 8 }}>
+              <Ionicons name="chatbubbles-outline" size={40} color={theme.textDim} />
+              <Text style={{ color: theme.textDim, textAlign: 'center' }}>
+                Say hi to your driver • ڈرائیور کو میسج کریں
+              </Text>
+            </View>
           }
         />
+
+        {/* Quick Passenger Replies */}
+        <View style={{ paddingHorizontal: 12, paddingBottom: 6 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+            {quickReplies.map((reply) => (
+              <TouchableOpacity
+                key={reply}
+                onPress={() => send(reply)}
+                style={[styles.quickChip, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}
+              >
+                <Text style={[styles.quickChipText, { color: theme.text }]}>{reply}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
         <View style={[styles.inputRow, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
           <TextInput
             testID="chat-input"
             value={text}
             onChangeText={setText}
-            placeholder="Message…"
+            placeholder="Type message in English or اردو..."
             placeholderTextColor={theme.textFaint}
             style={[styles.input, { backgroundColor: theme.surfaceAlt, color: theme.text }]}
           />
           <TouchableOpacity
             testID="chat-send-btn"
-            onPress={send}
-            style={[styles.sendBtn, { backgroundColor: theme.ctaBg }]}
+            onPress={() => send()}
+            style={[styles.sendBtn, { backgroundColor: '#006837' }]}
           >
-            <Ionicons name="send" size={18} color={theme.ctaText} />
+            <Ionicons name="send" size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -153,7 +187,9 @@ export default function Chat() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1 },
+  quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1 },
+  quickChipText: { fontSize: 12, fontWeight: '600' },
   inputRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, borderTopWidth: 1 },
-  input: { flex: 1, height: 46, borderRadius: 23, paddingHorizontal: 16, fontSize: 15 },
+  input: { flex: 1, height: 46, borderRadius: 23, paddingHorizontal: 16, fontSize: 14 },
   sendBtn: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
 });

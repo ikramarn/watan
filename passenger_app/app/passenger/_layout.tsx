@@ -49,8 +49,8 @@ export default function PassengerLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Wallet (والٹ)',
-          tabBarIcon: ({ color, size }) => <Ionicons name="wallet-outline" size={size} color={color} />,
+          title: 'Profile (پروفائل)',
+          tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen name="ride/[id]" options={{ href: null }} />

@@ -513,6 +513,39 @@ export default function DriverHome() {
                 <View style={styles.progressTrack}>
                   <View style={[styles.progressFill, { width: `${(filledSeats / totalSeats) * 100}%` }]} />
                 </View>
+
+                {/* 14-Seat Physical Mini Map Grid (Stitch Spec) */}
+                <View style={styles.physicalSeatGrid}>
+                  {Array.from({ length: totalSeats }, (_, i) => i + 1).map((seatNum) => {
+                    const isFilled = seatNum <= filledSeats;
+                    return (
+                      <View
+                        key={seatNum}
+                        style={[
+                          styles.miniSeatCell,
+                          isFilled ? styles.miniSeatCellFilled : styles.miniSeatCellEmpty,
+                        ]}
+                      >
+                        <Text style={[styles.miniSeatNum, isFilled ? styles.miniSeatNumFilled : styles.miniSeatNumEmpty]}>
+                          {seatNum}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                {/* Departure Condition Strip */}
+                <View style={styles.departureConditionRow}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                    <Ionicons name="time-outline" size={14} color="#FFB95F" />
+                    <Text style={styles.departureConditionText}>
+                      روانگی فل ہونے پر یا {String(countdownMinutes).padStart(2, '0')}:{String(countdownSeconds).padStart(2, '0')} منٹ
+                    </Text>
+                  </View>
+                  <View style={styles.autoWalkInBadge}>
+                    <Text style={styles.autoWalkInText}>Auto Walk-in: ON</Text>
+                  </View>
+                </View>
               </View>
             </View>
 
@@ -887,4 +920,52 @@ const styles = StyleSheet.create({
   scanManualInput: { backgroundColor: '#0D1513', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: '#DCE4E1', fontSize: 13, borderWidth: 1, borderColor: '#3D4A3F' },
   quickAmtBtn: { flex: 1, backgroundColor: '#006D38', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   quickAmtText: { color: '#FFFFFF', fontWeight: '800', fontSize: 12 },
+  physicalSeatGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+    marginBottom: 6,
+    justifyContent: 'space-between',
+  },
+  miniSeatCell: {
+    width: '12%',
+    height: 26,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniSeatCellFilled: {
+    backgroundColor: '#006837',
+    borderWidth: 1,
+    borderColor: '#59DF89',
+  },
+  miniSeatCellEmpty: {
+    backgroundColor: '#2A3230',
+    borderWidth: 1,
+    borderColor: '#3D4A3F',
+    borderStyle: 'dashed',
+  },
+  miniSeatNum: { fontSize: 10, fontWeight: '700' },
+  miniSeatNumFilled: { color: '#FFFFFF' },
+  miniSeatNumEmpty: { color: '#869487' },
+  departureConditionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#232C29',
+  },
+  departureConditionText: { fontSize: 11, color: '#BCCABC', fontWeight: '600' },
+  autoWalkInBadge: {
+    backgroundColor: '#19211F',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#3D4A3F',
+  },
+  autoWalkInText: { fontSize: 10, color: '#59DF89', fontWeight: '800' },
 });
