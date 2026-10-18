@@ -708,7 +708,7 @@ export default function App() {
       </header>
 
       {/* Main Content Dashboard */}
-      <main className="pt-28 pb-12 px-4 max-w-[1600px] w-full mx-auto flex-1 flex flex-col gap-4">
+      <main className="pt-28 pb-24 md:pb-12 px-3 sm:px-4 max-w-[1600px] w-full mx-auto flex-1 flex flex-col gap-4">
         {/* Toast / Notification Bar */}
         {alertMessage && (
           <div className="bg-primary/10 border border-primary text-primary px-4 py-2.5 rounded-lg flex items-center justify-between shadow-lg">
@@ -1977,6 +1977,50 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation Bar (For Small Munshis on Smartphones) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container/95 backdrop-blur-md border-t border-outline-variant flex items-center justify-around py-2 px-1 shadow-2xl">
+        <button
+          onClick={() => setActiveTab("operations")}
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all cursor-pointer ${
+            activeTab === "operations" ? "text-primary font-bold" : "text-on-surface-variant hover:text-white"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">
+            {activeTab === "operations" ? "dashboard" : "dashboard"}
+          </span>
+          <span className="text-[10px]">پاری (Bays)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("fleet")}
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all cursor-pointer relative ${
+            activeTab === "fleet" ? "text-primary font-bold" : "text-on-surface-variant hover:text-white"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">local_taxi</span>
+          <span className="text-[10px]">گاڑیاں (Fleet)</span>
+          <span className="absolute top-0.5 right-2 w-2 h-2 rounded-full bg-secondary"></span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("map")}
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all cursor-pointer ${
+            activeTab === "map" ? "text-primary font-bold" : "text-on-surface-variant hover:text-white"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">radar</span>
+          <span className="text-[10px]">نقشہ (Radar)</span>
+        </button>
+
+        <button
+          onClick={() => setShowMunshiProfileModal(true)}
+          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all cursor-pointer text-on-surface-variant hover:text-primary"
+        >
+          <span className="material-symbols-outlined text-[20px]">badge</span>
+          <span className="text-[10px]">منشی (Admin)</span>
+        </button>
+      </nav>
     </div>
   );
 }

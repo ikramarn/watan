@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Watan Munshi - Stand Manager (وطن منشی)",
+    "slug": "watan-munshi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "watan-munshi",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "pk.com.watan.munshi",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#090D16"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
