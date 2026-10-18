@@ -535,10 +535,10 @@ export default function PassengerHome() {
                     <Ionicons name="qr-code" size={110} color="#004D27" />
                   </View>
                   <View style={{ width: '100%', gap: 4, marginTop: 8 }}>
-                    <Text style={styles.ticketDetail}>Route: <strong>{reservedTicket.route}</strong></Text>
-                    <Text style={styles.ticketDetail}>Seats: <strong style={{ color: '#006837' }}>{reservedTicket.seats.join(', ')}</strong></Text>
-                    <Text style={styles.ticketDetail}>Total Fare: <strong>Rs. {reservedTicket.fare}</strong></Text>
-                    <Text style={[styles.ticketDetail, { color: '#735C00', fontWeight: 'bold' }]}>Payment: {reservedTicket.mode}</Text>
+                    <Text style={styles.ticketDetail}>Route: <Text style={{ fontWeight: '700' }}>{reservedTicket.route}</Text></Text>
+                    <Text style={styles.ticketDetail}>Seats: <Text style={{ color: '#006837', fontWeight: '700' }}>{reservedTicket.seats.join(', ')}</Text></Text>
+                    <Text style={styles.ticketDetail}>Total Fare: <Text style={{ fontWeight: '700' }}>Rs. {reservedTicket.fare}</Text></Text>
+                    <Text style={[styles.ticketDetail, { color: '#735C00', fontWeight: '700' }]}>Payment: {reservedTicket.mode}</Text>
                   </View>
                   <Text style={styles.ticketInstruction}>
                     Show this QR code to the Adda Munshi at Bay #2 upon arrival to pay cash and board.
@@ -552,6 +552,7 @@ export default function PassengerHome() {
                     router.push('/passenger/history');
                   }}
                   variant="primary"
+                  theme={theme}
                 />
               </View>
             ) : (

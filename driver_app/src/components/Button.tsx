@@ -1,11 +1,11 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, View, StyleProp, ViewStyle } from 'react-native';
-import { Theme } from '../lib/theme';
+import { Theme, getTheme } from '../lib/theme';
 
 interface Props {
   title: string;
   onPress?: () => void;
-  theme: Theme;
+  theme?: Theme;
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   loading?: boolean;
   disabled?: boolean;
@@ -25,20 +25,21 @@ export default function Button({
   style,
   testID,
 }: Props) {
+  const activeTheme = theme || getTheme('driver');
   const bg =
     variant === 'primary'
-      ? theme.ctaBg
+      ? activeTheme.ctaBg
       : variant === 'danger'
-      ? theme.danger
+      ? activeTheme.danger
       : variant === 'ghost'
       ? 'transparent'
-      : theme.surfaceAlt;
+      : activeTheme.surfaceAlt;
   const color =
     variant === 'primary'
-      ? theme.ctaText
+      ? activeTheme.ctaText
       : variant === 'danger'
       ? '#fff'
-      : theme.text;
+      : activeTheme.text;
   return (
     <TouchableOpacity
       testID={testID}

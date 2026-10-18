@@ -251,7 +251,7 @@ export default function DriverHome() {
             <View style={styles.pariCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View style={styles.bayBadge}>
-                  <Ionicons name="format-list-bulleted" size={14} color="#00391A" />
+                  <Ionicons name="list" size={14} color="#00391A" />
                   <Text style={styles.bayBadgeText}>BAY 3 • بے ۳</Text>
                 </View>
                 <View style={styles.munshiSyncBadge}>
@@ -403,6 +403,7 @@ export default function DriverHome() {
                   title="Top-Up via Raast"
                   onPress={() => Alert.alert('Raast QR', 'Generating State Bank Raast Dynamic QR Code...')}
                   variant="primary"
+                  theme={theme}
                 />
               </View>
             </View>
@@ -438,6 +439,7 @@ export default function DriverHome() {
               title="Validate & Mark Boarded"
               onPress={handleValidateBoardingQr}
               variant="primary"
+              theme={theme}
             />
           </View>
         </View>
