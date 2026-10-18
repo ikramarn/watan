@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, Modal, ActivityIndicator,
+  TextInput, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -12,8 +13,6 @@ import Button from '../../src/components/Button';
 import { getTheme } from '../../src/lib/theme';
 import { useAuth } from '../../src/lib/auth';
 import { api, getToken } from '../../src/lib/api';
-
-import { Platform } from 'react-native';
 
 const DEFAULT_POS = { lat: 33.6007, lng: 73.0679 }; // Rawalpindi / Islamabad Saddar
 const BG_LOCATION_TASK = 'driver-bg-location';
