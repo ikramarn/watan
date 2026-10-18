@@ -12,7 +12,7 @@ import Button from '../../src/components/Button';
 
 export default function Login() {
   const router = useRouter();
-  const { login, role } = useAuth();
+  const { login, loginWithGoogle, role } = useAuth();
   const theme = getTheme(role);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

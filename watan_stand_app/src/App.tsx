@@ -26,11 +26,86 @@ interface TicketRecord {
   time: string;
 }
 
+export interface EnrolledDriver {
+  id: string;
+  name: string;
+  phone: string;
+  cnic: string;
+  vehicleType: string;
+  vehiclePlate: string;
+  corridor: string;
+  operatingMode: "in_adda_pari" | "roaming";
+  registeredDate: string;
+  totalTrips: number;
+}
+
 export default function App() {
+  const [activeTab, setActiveTab] = useState<"operations" | "fleet">("operations");
   const [timeStr, setTimeStr] = useState<string>("");
   const [cashCollected, setCashCollected] = useState<number>(142500);
   const [departuresCount, setDeparturesCount] = useState<number>(38);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  // Stand fleet enrolled drivers
+  const [enrolledDrivers, setEnrolledDrivers] = useState<EnrolledDriver[]>([
+    {
+      id: "drv_1",
+      name: "Tariq Mahmood (طارق محمود)",
+      phone: "0300-5554921",
+      cnic: "37405-1829101-1",
+      vehicleType: "Toyota HiAce Grand Cabin (14-Seater)",
+      vehiclePlate: "LES-19-4821",
+      corridor: "Pirwadhai to Peshawar Line",
+      operatingMode: "in_adda_pari",
+      registeredDate: "12 Oct 2026",
+      totalTrips: 48,
+    },
+    {
+      id: "drv_2",
+      name: "Rafiq Ahmad (رفیق احمد)",
+      phone: "0321-4455667",
+      cnic: "37405-2918234-3",
+      vehicleType: "Toyota Coaster (28-Seater)",
+      vehiclePlate: "RIP-21-9921",
+      corridor: "Rawalpindi to Lahore Motorway Line",
+      operatingMode: "in_adda_pari",
+      registeredDate: "05 Oct 2026",
+      totalTrips: 62,
+    },
+    {
+      id: "drv_3",
+      name: "Bilal Khan (بلال خان)",
+      phone: "0345-9988112",
+      cnic: "37405-4411990-7",
+      vehicleType: "Sazgar 9-Seater Qingqi",
+      vehiclePlate: "RWP-18-3011",
+      corridor: "Pirwadhai to Saddar Shuttle",
+      operatingMode: "in_adda_pari",
+      registeredDate: "15 Oct 2026",
+      totalTrips: 114,
+    },
+    {
+      id: "drv_4",
+      name: "Arshad Mehmood (ارشد محمود)",
+      phone: "0333-8877665",
+      cnic: "37405-3928172-5",
+      vehicleType: "Suzuki Bolan (7-Seater)",
+      vehiclePlate: "RWP-14-5541",
+      corridor: "Rawalpindi - Murree Express",
+      operatingMode: "roaming",
+      registeredDate: "01 Oct 2026",
+      totalTrips: 31,
+    },
+  ]);
+
+  // Driver Enrollment Modal State
+  const [showEnrollModal, setShowEnrollModal] = useState<boolean>(false);
+  const [newDriverName, setNewDriverName] = useState<string>("");
+  const [newDriverPhone, setNewDriverPhone] = useState<string>("");
+  const [newDriverCnic, setNewDriverCnic] = useState<string>("");
+  const [newDriverVehicle, setNewDriverVehicle] = useState<string>("Toyota HiAce Grand Cabin");
+  const [newDriverPlate, setNewDriverPlate] = useState<string>("");
+  const [newDriverCorridor, setNewDriverCorridor] = useState<string>("Pirwadhai to Peshawar Line");
 
   // Active bays state
   const [bays, setBays] = useState<Bay[]>([
@@ -228,6 +303,54 @@ export default function App() {
     );
   };
 
+  const handleEnrollDriver = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDriverName.trim() || !newDriverPlate.trim()) {
+      setAlertMessage("Please provide driver name and vehicle registration plate.");
+      return;
+    }
+
+    const newDriver: EnrolledDriver = {
+      id: "drv_" + Date.now(),
+      name: newDriverName.trim(),
+      phone: newDriverPhone.trim() || "0300-555" + Math.floor(1000 + Math.random() * 9000),
+      cnic: newDriverCnic.trim() || "37405-*******-1",
+      vehicleType: newDriverVehicle,
+      vehiclePlate: newDriverPlate.trim().toUpperCase(),
+      corridor: newDriverCorridor,
+      operatingMode: "in_adda_pari",
+      registeredDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+      totalTrips: 0,
+    };
+
+    setEnrolledDrivers([newDriver, ...enrolledDrivers]);
+    setShowEnrollModal(false);
+    setNewDriverName("");
+    setNewDriverPhone("");
+    setNewDriverCnic("");
+    setNewDriverPlate("");
+    setAlertMessage(
+      `Driver ${newDriver.name} enrolled into Stand Fleet! Dual-Mode (0% Adda Pari + Roaming) is now unlocked in their Watan Driver App.`
+    );
+  };
+
+  const handleToggleDriverMode = (driverId: string) => {
+    setEnrolledDrivers((prev) =>
+      prev.map((d) => {
+        if (d.id !== driverId) return d;
+        const newMode = d.operatingMode === "in_adda_pari" ? "roaming" : "in_adda_pari";
+        setAlertMessage(
+          `Switched ${d.name} (${d.vehiclePlate}) to ${
+            newMode === "in_adda_pari"
+              ? "Adda Pari Stand Queue (0% Platform Fee)"
+              : "Independent Roaming (Doorstep Customer Hails)"
+          }.`
+        );
+        return { ...d, operatingMode: newMode };
+      })
+    );
+  };
+
   return (
     <div className="bg-background text-on-surface min-h-screen flex flex-col font-body-md select-none">
       {/* Top Header */}
@@ -350,8 +473,50 @@ export default function App() {
           </div>
         )}
 
-        {/* 3-Column Cockpit Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
+        {/* Navigation Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-outline-variant pb-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActiveTab("operations")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all ${
+                activeTab === "operations"
+                  ? "bg-primary text-on-primary shadow-md"
+                  : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">dashboard</span>
+              <span>Live Stand Operations (پاری اور پرچی کاؤنٹر)</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("fleet")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all ${
+                activeTab === "fleet"
+                  ? "bg-primary text-on-primary shadow-md"
+                  : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">local_taxi</span>
+              <span>Fleet & Driver Enrollment (ڈرائیور اور گاڑیوں کی رجسٹریشن)</span>
+              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-secondary text-on-secondary text-[10px] font-mono">
+                {enrolledDrivers.length}
+              </span>
+            </button>
+          </div>
+
+          {activeTab === "fleet" && (
+            <button
+              onClick={() => setShowEnrollModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-tint text-on-primary font-bold text-xs uppercase tracking-wider shadow hover:bg-opacity-90 transition-all self-start sm:self-auto"
+            >
+              <span className="material-symbols-outlined text-sm">person_add</span>
+              <span>Enroll New Driver</span>
+            </button>
+          )}
+        </div>
+
+        {activeTab === "operations" && (
+          /* 3-Column Cockpit Layout */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
           {/* ========================================================================= */}
           {/* LEFT COLUMN: Pari Queue & Bay Management (4 Cols)                          */}
           {/* ========================================================================= */}
@@ -708,6 +873,132 @@ export default function App() {
             </div>
           </section>
         </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* FLEET & DRIVER ENROLLMENT DIRECTORY (اڈہ گاڑی اور ڈرائیور رجسٹریشن)         */}
+        {/* ========================================================================= */}
+        {activeTab === "fleet" && (
+          <div className="flex flex-col gap-4 flex-1">
+            {/* Top Concept Banner */}
+            <div className="bg-primary/10 border border-primary/50 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl mt-0.5">verified_user</span>
+                <div>
+                  <h3 className="font-bold text-base text-on-surface">Adda Fleet Enrolled Driver Directory (اڈہ گاڑی اور ڈرائیور رجسٹریشن)</h3>
+                  <p className="text-xs text-on-surface-variant mt-1 leading-relaxed max-w-4xl">
+                    <strong>Watan Dual-Mode Model:</strong> Independent drivers who do not want to be in an Adda operate directly as normal independent roaming drivers (like Uber / InDrive / Bykea) at 10% platform commission. Once your Adda enrolls a driver here, their driver app unlocks the <strong>Dual-Mode Switcher</strong> allowing them to choose between <strong>Adda Pari (0% Commission, Stand Turn Queue)</strong> and <strong>Independent Roaming</strong>.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEnrollModal(true)}
+                className="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider flex items-center gap-2 shrink-0 shadow-lg"
+              >
+                <span className="material-symbols-outlined text-sm">person_add</span>
+                <span>Enroll New Driver</span>
+              </button>
+            </div>
+
+            {/* Quick Fleet Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant">
+                <span className="text-xs text-on-surface-variant font-semibold">Total Stand Fleet</span>
+                <div className="text-xl font-bold text-primary mt-1">{enrolledDrivers.length} Vehicles</div>
+              </div>
+              <div className="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant">
+                <span className="text-xs text-on-surface-variant font-semibold">Active in Stand Queue</span>
+                <div className="text-xl font-bold text-secondary mt-1">
+                  {enrolledDrivers.filter((d) => d.operatingMode === "in_adda_pari").length} Vehicles
+                </div>
+              </div>
+              <div className="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant">
+                <span className="text-xs text-on-surface-variant font-semibold">Switched to Roaming</span>
+                <div className="text-xl font-bold text-surface-tint mt-1">
+                  {enrolledDrivers.filter((d) => d.operatingMode === "roaming").length} Drivers
+                </div>
+              </div>
+              <div className="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant">
+                <span className="text-xs text-on-surface-variant font-semibold">Stand Rate Agreement</span>
+                <div className="text-xl font-bold text-primary mt-1">0% Platform Fee</div>
+              </div>
+            </div>
+
+            {/* Enrolled Drivers Table / Card List */}
+            <div className="bg-surface-container-low rounded-xl border border-outline-variant overflow-hidden">
+              <div className="p-4 border-b border-outline-variant flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-on-surface">Registered Stand Drivers & Live Queue Status</h4>
+                  <p className="text-xs text-on-surface-variant">Toggle driver mode between Adda Queue and Independent Roaming</p>
+                </div>
+                <span className="px-2.5 py-1 rounded bg-surface-container-high text-xs text-primary font-bold border border-outline-variant">
+                  {enrolledDrivers.length} Active Records
+                </span>
+              </div>
+
+              <div className="divide-y divide-outline-variant/60">
+                {enrolledDrivers.map((driver) => (
+                  <div key={driver.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-container/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary text-primary flex items-center justify-center font-bold text-base">
+                        {driver.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-on-surface">{driver.name}</span>
+                          <span className="text-xs text-secondary font-mono">{driver.phone}</span>
+                        </div>
+                        <div className="text-xs text-on-surface-variant flex items-center gap-2 mt-0.5">
+                          <span>{driver.vehicleType}</span>
+                          <span>•</span>
+                          <span className="font-mono font-bold text-on-surface">{driver.vehiclePlate}</span>
+                          <span>•</span>
+                          <span className="text-primary font-semibold">{driver.corridor}</span>
+                        </div>
+                        <div className="text-[11px] text-outline mt-0.5">
+                          CNIC: {driver.cnic} • Enrolled: {driver.registeredDate} • Trips: {driver.totalTrips}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 self-end md:self-center">
+                      <div className="text-right">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 ${
+                            driver.operatingMode === "in_adda_pari"
+                              ? "bg-primary/20 text-primary border border-primary/50"
+                              : "bg-surface-tint/20 text-surface-tint border border-surface-tint/50"
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              driver.operatingMode === "in_adda_pari" ? "bg-primary" : "bg-surface-tint"
+                            }`}
+                          ></span>
+                          {driver.operatingMode === "in_adda_pari" ? "In Adda Pari (0% Fee)" : "Roaming Doorstep Mode"}
+                        </span>
+                        <div className="text-[10px] text-outline mt-0.5">
+                          {driver.operatingMode === "in_adda_pari" ? "Loading in Stand Bay" : "Accepting street hails"}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleToggleDriverMode(driver.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                          driver.operatingMode === "in_adda_pari"
+                            ? "bg-surface-container-high hover:bg-surface-tint/20 text-surface-tint border-surface-tint/40"
+                            : "bg-surface-container-high hover:bg-primary/20 text-primary border-primary/40"
+                        }`}
+                      >
+                        {driver.operatingMode === "in_adda_pari" ? "Switch to Roaming" : "Return to Adda Queue"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* 58mm Thermal Print Simulation Modal */}
@@ -747,6 +1038,140 @@ export default function App() {
             >
               Close & Ready for Next Passenger
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Enroll New Driver Modal */}
+      {showEnrollModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="bg-surface-container rounded-xl max-w-lg w-full p-6 border border-outline-variant shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-outline-variant pb-3">
+              <div>
+                <h3 className="font-bold text-base text-on-surface">Enroll New Driver to Stand Fleet</h3>
+                <p className="text-xs text-secondary font-semibold">اڈہ گاڑی اور ڈرائیور رجسٹریشن</p>
+              </div>
+              <button
+                onClick={() => setShowEnrollModal(false)}
+                className="text-on-surface-variant hover:text-white"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleEnrollDriver} className="flex flex-col gap-3">
+              <div>
+                <label className="text-xs font-bold text-on-surface-variant block mb-1">
+                  Driver Full Name (ڈرائیور کا پورا نام) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Arshad Mehmood"
+                  value={newDriverName}
+                  onChange={(e) => setNewDriverName(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-outline-variant rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant block mb-1">
+                    Mobile / Raast ID *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="0300-1234567"
+                    value={newDriverPhone}
+                    onChange={(e) => setNewDriverPhone(e.target.value)}
+                    className="w-full bg-surface-container-highest border border-outline-variant rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant block mb-1">
+                    CNIC (شناختی کارڈ)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="37405-1234567-1"
+                    value={newDriverCnic}
+                    onChange={(e) => setNewDriverCnic(e.target.value)}
+                    className="w-full bg-surface-container-highest border border-outline-variant rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant block mb-1">
+                    Vehicle Type (گاڑی کی قسم)
+                  </label>
+                  <select
+                    value={newDriverVehicle}
+                    onChange={(e) => setNewDriverVehicle(e.target.value)}
+                    className="w-full bg-surface-container-highest border border-outline-variant rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+                  >
+                    <option value="Toyota HiAce Grand Cabin">Toyota HiAce Grand Cabin (14-Seater)</option>
+                    <option value="Toyota Coaster">Toyota Coaster (28-Seater)</option>
+                    <option value="Suzuki Bolan">Suzuki Bolan (7-Seater)</option>
+                    <option value="Sazgar Qingqi 9-Seater">Sazgar Qingqi 9-Seater</option>
+                    <option value="Suzuki Alto VXR">Suzuki Alto VXR (Mini Cab)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant block mb-1">
+                    Registration Plate (نمبر پلیٹ) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. LES-20-4412"
+                    value={newDriverPlate}
+                    onChange={(e) => setNewDriverPlate(e.target.value)}
+                    className="w-full bg-surface-container-highest border border-outline-variant rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-on-surface-variant block mb-1">
+                  Default Route Corridor (مقررہ روٹ)
+                </label>
+                <select
+                  value={newDriverCorridor}
+                  onChange={(e) => setNewDriverCorridor(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-outline-variant rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+                >
+                  <option value="Pirwadhai to Peshawar Line">Pirwadhai to Peshawar Line</option>
+                  <option value="Rawalpindi to Lahore Motorway Line">Rawalpindi to Lahore Motorway Line</option>
+                  <option value="Rawalpindi to Murree Express">Rawalpindi to Murree Express</option>
+                  <option value="Pirwadhai to Saddar Shuttle">Pirwadhai to Saddar Shuttle</option>
+                  <option value="Pirwadhai to Abbottabad / Hazara">Pirwadhai to Abbottabad / Hazara</option>
+                </select>
+              </div>
+
+              <div className="bg-surface-container-highest p-3 rounded border border-outline-variant text-xs text-on-surface-variant">
+                <span className="text-primary font-bold">Watan Stand License Terms:</span> 0% commission deducted from driver fares on Adda Pari trips. Stand subscription fee is paid weekly by the Adda.
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEnrollModal(false)}
+                  className="px-4 py-2 rounded text-xs font-bold text-on-surface-variant hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                  <span>Register & Sync to Driver App</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

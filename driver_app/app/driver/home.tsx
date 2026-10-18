@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, Modal, ActivityIndicator,
-  TextInput, Platform,
+  TextInput, Platform, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import * as TaskManager from 'expo-task-manager';
 import MapView from '../../src/components/MapView';
 import Button from '../../src/components/Button';
 import { getTheme } from '../../src/lib/theme';
@@ -15,70 +14,63 @@ import { useAuth } from '../../src/lib/auth';
 import { api, getToken } from '../../src/lib/api';
 
 const DEFAULT_POS = { lat: 33.6007, lng: 73.0679 }; // Rawalpindi / Islamabad Saddar
-const BG_LOCATION_TASK = 'driver-bg-location';
-
-// Background task
-if (Platform.OS !== 'web') {
-  try {
-    TaskManager.defineTask(BG_LOCATION_TASK, async ({ data, error }: any) => {
-      if (error || !data?.locations?.length) return;
-      const { latitude, longitude, heading } = data.locations[0].coords;
-      try {
-        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-        const token = await AsyncStorage.getItem('rs_token');
-        const base = (await AsyncStorage.getItem('rs_backend_url')) || process.env.EXPO_PUBLIC_BACKEND_URL || '';
-        if (!token) return;
-        await fetch(`${base}/api/driver/status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ online: true, lat: latitude, lng: longitude, bearing: heading || 0 }),
-        });
-      } catch {}
-    });
-  } catch {}
-}
 
 export default function DriverHome() {
+  const router = useRouter();
   const theme = getTheme('driver');
   const { user } = useAuth();
-  const router = useRouter();
 
-  // Mode: 'adda' (Pari Queue Mode) vs 'roaming' (Freelance Doorstep Hail)
-  const [activeMode, setActiveMode] = useState<'adda' | 'roaming'>('adda');
-  const [online, setOnline] = useState(true);
+  // Driver Online State
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+
+  // Core Architecture: Is driver enrolled with an Adda?
+  // Normal drivers start as Independent (isAddaRegistered: false).
+  // Once an Adda Munshi enrolls them, isAddaRegistered becomes true, unlocking Dual-Mode switcher!
+  const [isAddaRegistered, setIsAddaRegistered] = useState<boolean>(false);
+  const [activeMode, setActiveMode] = useState<'roaming' | 'adda'>('roaming');
+
+  // GPS Position
   const [pos, setPos] = useState(DEFAULT_POS);
   const [bearing, setBearing] = useState(0);
 
-  // Adda Pari State
+  // Adda Pari Stand State (When enrolled in Adda)
   const [pariTurn, setPariTurn] = useState<number>(2);
   const [bayNumber, setBayNumber] = useState<number>(3);
   const [filledSeats, setFilledSeats] = useState<number>(11);
   const totalSeats = 14;
-  const [countdownMinutes, setCountdownMinutes] = useState<number>(12);
+  const [countdownMinutes, setCountdownMinutes] = useState<number>(8);
   const [countdownSeconds, setCountdownSeconds] = useState<number>(45);
 
-  // Manifest
+  // Adda Passenger Manifest
   const [manifest, setManifest] = useState([
-    { id: '1', name: 'Muhammad Usman', phone: '0300-1234567', seats: [3, 4], status: 'QR Verified (نقد اڈہ کاؤنٹر)' },
-    { id: '2', name: 'Zainab Bibi', phone: '0321-7654321', seats: [6], status: 'Paid Online via JazzCash' },
-    { id: '3', name: 'Walk-in Commuter', phone: 'Cash Passenger', seats: [8], status: 'Counter Ticket #402' },
+    { id: '1', name: 'Muhammad Usman', phone: '0300-1234567', seats: [3, 4], status: 'QR Verified (نقد کاؤنٹر)' },
+    { id: '2', name: 'Zainab Bibi (Ladies Zone)', phone: '0321-7654321', seats: [6], status: 'Paid Online (JazzCash)' },
+    { id: '3', name: 'Walk-in Passenger', phone: 'Cash Passenger', seats: [8], status: 'Counter Ticket #402' },
   ]);
 
-  // QR Boarding Scanner Modal
+  // QR Boarding Verification Modal
   const [scanModalVisible, setScanModalVisible] = useState(false);
   const [scanInput, setScanInput] = useState('');
 
-  // Geofence Modal
-  const [geofencePrompt, setGeofencePrompt] = useState<boolean>(false);
+  // Top-Up Floating Wallet Modal
+  const [topupModalVisible, setTopupModalVisible] = useState(false);
 
-  // Roaming Mode State
+  // Independent Roaming State
   const [incoming, setIncoming] = useState<any>(null);
   const [countdown, setCountdown] = useState(15);
-  const [ride, setRide] = useState<any>(null);
-  const [earnings, setEarnings] = useState<any>({ total: 4200, today: 1850, week: 14200, today_trips: 5, available_balance: 420 });
+  const [activeTrip, setActiveTrip] = useState<any>(null);
+  const [tripStep, setTripStep] = useState<'pickup' | 'dropoff'>('pickup');
+  const [earnings, setEarnings] = useState<any>({
+    today: 2850,
+    total: 18450,
+    week: 16200,
+    today_trips: 6,
+    available_balance: 2450,
+  });
 
   // Countdown timer for Adda departure
   useEffect(() => {
+    if (!isAddaRegistered || activeMode !== 'adda') return;
     const timer = setInterval(() => {
       setCountdownSeconds((sec) => {
         if (sec > 0) return sec - 1;
@@ -87,9 +79,50 @@ export default function DriverHome() {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isAddaRegistered, activeMode]);
 
-  // GPS tracking
+  // Simulated Incoming Ride Request for Independent Driver
+  useEffect(() => {
+    if (!isOnline || activeTrip || activeMode === 'adda') {
+      setIncoming(null);
+      return;
+    }
+
+    // Trigger incoming ride simulation after 4 seconds of being online
+    const timeout = setTimeout(() => {
+      setIncoming({
+        id: `ride-${Date.now()}`,
+        passenger_name: 'Ayesha Bibi (عائشہ بی بی)',
+        passenger_rating: 4.9,
+        pickup_address: 'Commercial Market, Satellite Town',
+        dropoff_address: 'Saddar Metro Station, Mall Road',
+        distance_km: 5.4,
+        est_minutes: 14,
+        gross_fare: 380,
+        platform_fee: 38, // 10% Watan fee
+        driver_net: 342,
+        vehicle_type: 'Auto Rickshaw / Mini Car',
+      });
+      setCountdown(15);
+    }, 4000);
+
+    return () => clearTimeout(timeout);
+  }, [isOnline, activeTrip, activeMode]);
+
+  // Incoming request countdown
+  useEffect(() => {
+    if (!incoming) return;
+    if (countdown <= 0) {
+      setIncoming(null);
+      return;
+    }
+    const timer = setInterval(() => {
+      setCountdown((c) => c - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [incoming, countdown]);
+
+  // Real or Simulated GPS Position
   useEffect(() => {
     let sub: Location.LocationSubscription | null = null;
     (async () => {
@@ -109,43 +142,68 @@ export default function DriverHome() {
           );
         }
       } catch (err) {
-        console.warn('Driver GPS error:', err);
+        // Fallback to Rawalpindi Saddar coordinates
       }
     })();
     return () => { sub?.remove(); };
   }, []);
 
+  // Accept incoming independent ride
+  const handleAcceptRide = () => {
+    if (!incoming) return;
+    setActiveTrip(incoming);
+    setTripStep('pickup');
+    setIncoming(null);
+    Alert.alert(
+      'Ride Accepted (سواری قبول کر لی گئی)',
+      `Navigate to ${incoming.pickup_address}. Pickup passenger: ${incoming.passenger_name}`
+    );
+  };
+
+  // Decline incoming ride
+  const handleDeclineRide = () => {
+    setIncoming(null);
+  };
+
+  // Advance Trip Lifecycle
+  const handleArriveAtPickup = () => {
+    setTripStep('dropoff');
+    Alert.alert(
+      'Arrived at Pickup (پک اپ پہنچ گئے)',
+      'Passenger boarded. Begin navigation to destination: ' + activeTrip.dropoff_address
+    );
+  };
+
+  const handleCompleteTrip = () => {
+    const earned = activeTrip.driver_net;
+    setEarnings((prev: any) => ({
+      ...prev,
+      today: prev.today + earned,
+      today_trips: prev.today_trips + 1,
+      available_balance: prev.available_balance + earned,
+    }));
+    const fareMsg = `Rs. ${activeTrip.gross_fare} cash collected. Your net profit: Rs. ${earned} (10% Watan fee Rs. ${activeTrip.platform_fee} deducted from float).`;
+    setActiveTrip(null);
+    Alert.alert('Trip Completed! (سفر مکمل ہو گیا)', fareMsg);
+  };
+
+  // Adda Mode Switcher (Unlocked only when enrolled with Adda)
   const handleModeSwitch = (mode: 'adda' | 'roaming') => {
     setActiveMode(mode);
     if (mode === 'adda') {
       Alert.alert(
-        'Adda Pari Mode Activated',
-        'You are now in the Stand Pari rotation queue. Doorstep hails are paused. 0% Platform Commission applies.'
+        '🏢 Adda Pari Mode Active',
+        'You are now in Pirwadhai Stand rotation queue (Bay #3, Turn #2). Doorstep hails are paused. You keep 100% of all stand passenger fares (0% platform commission)!'
       );
     } else {
       Alert.alert(
-        'Independent Roaming Mode Activated',
-        'You are now free-floating for doorstep customer hail requests. Standard platform commission applies.'
+        '🚗 Independent Roaming Active',
+        'Stand queue paused. You are now roaming freely like an Uber/InDrive driver picking up doorstep hails in the city (10% Watan fee).'
       );
     }
   };
 
-  const handleValidateBoardingQr = () => {
-    if (!scanInput.trim()) return;
-    const newPassenger = {
-      id: String(Date.now()),
-      name: 'Verified Commuter',
-      phone: scanInput.toUpperCase(),
-      seats: [filledSeats + 1],
-      status: 'Boarded ✓',
-    };
-    setManifest([...manifest, newPassenger]);
-    setFilledSeats((prev) => Math.min(totalSeats, prev + 1));
-    setScanModalVisible(false);
-    setScanInput('');
-    Alert.alert('Boarding Confirmed', `Ticket verified for seat #${filledSeats + 1}. Cleared to board.`);
-  };
-
+  // Stand Gate Exit
   const handleDepartStand = () => {
     Alert.alert(
       'Depart Stand (روانگی اڈہ)',
@@ -155,46 +213,96 @@ export default function DriverHome() {
         {
           text: 'Confirm Departure',
           onPress: () => {
-            Alert.alert('Safe Journey! (سفر بخیر)', 'Trip started on Rawalpindi - Peshawar Highway.');
+            Alert.alert('Safe Journey! (سفر بخیر)', '14 Passengers on board. Trip started on Rawalpindi - Peshawar Highway.');
           },
         },
       ]
     );
   };
 
-  const capacityPercent = Math.round((filledSeats / totalSeats) * 100);
+  // Validate passenger boarding QR
+  const handleValidateBoardingQr = () => {
+    if (!scanInput.trim()) return;
+    const nextSeat = Math.min(totalSeats, filledSeats + 1);
+    const newPassenger = {
+      id: String(Date.now()),
+      name: 'Verified Commuter',
+      phone: scanInput.toUpperCase(),
+      seats: [nextSeat],
+      status: 'Boarded ✓',
+    };
+    setManifest([...manifest, newPassenger]);
+    setFilledSeats(nextSeat);
+    setScanModalVisible(false);
+    setScanInput('');
+    Alert.alert('Boarding Confirmed ✓', `Ticket ${newPassenger.phone} verified for Seat #${nextSeat}. Cleared to board.`);
+  };
+
+  // Simulate Adda Enrollment by Munshi (Allows testing both states!)
+  const handleToggleAddaEnrollment = () => {
+    if (!isAddaRegistered) {
+      setIsAddaRegistered(true);
+      setActiveMode('adda');
+      Alert.alert(
+        '🎉 Enrolled by Adda Munshi!',
+        'Pirwadhai Intercity Terminal (پیرودھائی اڈہ) has registered your vehicle into their digital fleet. You now have the option to switch between Adda Pari Mode (0% commission) and Independent Roaming!'
+      );
+    } else {
+      setIsAddaRegistered(false);
+      setActiveMode('roaming');
+      Alert.alert(
+        'Switched to Pure Independent',
+        'You are now a standalone independent driver (like Uber/InDrive). You can register with an Adda anytime.'
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      {/* Top Header */}
+      {/* Top Modern Header */}
       <View style={styles.navBar}>
         <View style={styles.brandRow}>
-          <View style={styles.brandIconBox}>
-            <Ionicons name="car-sport" size={20} color="#59DF89" />
+          <View style={[styles.brandIconBox, { backgroundColor: isAddaRegistered && activeMode === 'adda' ? '#006D38' : '#00391A' }]}>
+            <Ionicons name={isAddaRegistered && activeMode === 'adda' ? 'bus' : 'car-sport'} size={20} color="#59DF89" />
           </View>
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={styles.brandTitle}>WATAN DRIVER</Text>
-              <View style={styles.onlineDot} />
+              <Text style={styles.brandTitle}>
+                {isAddaRegistered
+                  ? (activeMode === 'adda' ? 'WATAN ADDA PARI' : 'WATAN HYBRID DRIVER')
+                  : 'WATAN INDEPENDENT'}
+              </Text>
+              <View style={[styles.onlineDot, { backgroundColor: isOnline ? '#59DF89' : '#EF4444' }]} />
             </View>
             <Text style={styles.brandSubtitle}>
-              {activeMode === 'adda' ? 'Pari Turn Mode (اڈہ پاری)' : 'Roaming Mode (روامنگ)'}
+              {isAddaRegistered
+                ? (activeMode === 'adda' ? 'Pirwadhai Stand • Turn #2' : 'Roaming Independently (10% Fee)')
+                : (isOnline ? 'Online • Uber/InDrive Style' : 'Offline • آف لائن')}
             </Text>
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={styles.dutyBadge}>
-            <Text style={styles.dutyBadgeText}>آن ڈیوٹی</Text>
-          </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {/* Hyper-Modern Online/Offline Duty Switch */}
+          <TouchableOpacity
+            style={[styles.dutyPill, { backgroundColor: isOnline ? '#005228' : '#2C3532', borderColor: isOnline ? '#59DF89' : '#5A6763' }]}
+            onPress={() => setIsOnline(!isOnline)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.dutyIndicator, { backgroundColor: isOnline ? '#59DF89' : '#94A3B8' }]} />
+            <Text style={[styles.dutyText, { color: isOnline ? '#59DF89' : '#DCE4E1' }]}>
+              {isOnline ? 'ONLINE' : 'OFFLINE'}
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/driver/profile')}>
             <Ionicons name="person" size={16} color="#DCE4E1" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-        {/* Driver Identity Card */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        {/* Driver Profile Summary Card */}
         <View style={styles.driverCard}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={styles.avatarBox}>
@@ -204,55 +312,176 @@ export default function DriverHome() {
               </View>
             </View>
             <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={styles.driverName}>طارق محمود</Text>
-                <Text style={styles.driverNameEn}>Tariq M.</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.driverName}>طارق محمود</Text>
+                  <Text style={styles.driverNameEn}>Tariq M.</Text>
+                </View>
                 <View style={styles.ratingChip}>
                   <Ionicons name="star" size={12} color="#FFB95F" />
-                  <Text style={styles.ratingText}>4.85</Text>
+                  <Text style={styles.ratingText}>4.9</Text>
                 </View>
-                <Text style={styles.vehicleText}>Toyota HiAce • LES-19-4821</Text>
               </View>
+              <Text style={styles.vehicleText}>
+                {isAddaRegistered ? 'Toyota HiAce Grand Cabin • LES-19-4821' : 'Suzuki Alto 660cc • White • ICT-GA-392'}
+              </Text>
+              <Text style={{ color: '#59DF89', fontSize: 11, fontWeight: '700', marginTop: 2 }}>
+                {isAddaRegistered ? '🏢 Enrolled in Pirwadhai Terminal' : '🚗 Independent Operator (Uber/InDrive)'}
+              </Text>
             </View>
           </View>
 
-          {/* Mode Switcher Toggle Pill */}
-          <View style={styles.modeSwitchRow}>
-            <TouchableOpacity
-              style={[styles.modeTab, activeMode === 'roaming' && styles.modeTabActive]}
-              onPress={() => handleModeSwitch('roaming')}
-            >
-              <Ionicons name="navigate" size={15} color={activeMode === 'roaming' ? '#00391A' : '#BCCABC'} />
-              <Text style={[styles.modeTabText, activeMode === 'roaming' && styles.modeTabTextActive]}>
-                Roaming (روامنگ)
-              </Text>
-            </TouchableOpacity>
+          {/* DUAL MODE SWITCHER: ONLY VISIBLE IF ENROLLED WITH ADDA */}
+          {isAddaRegistered ? (
+            <View style={styles.modeSwitchWrapper}>
+              <Text style={styles.modeSwitchLabel}>MODE CONTROLLER (طریقہ کار تبدیل کریں):</Text>
+              <View style={styles.modeSwitchRow}>
+                <TouchableOpacity
+                  style={[styles.modeTab, activeMode === 'adda' && styles.modeTabActiveAdda]}
+                  onPress={() => handleModeSwitch('adda')}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="bus" size={16} color={activeMode === 'adda' ? '#00391A' : '#BCCABC'} />
+                  <View>
+                    <Text style={[styles.modeTabText, activeMode === 'adda' && styles.modeTabTextActive]}>
+                      Adda Pari (0% Fee)
+                    </Text>
+                    <Text style={[styles.modeTabSub, activeMode === 'adda' && { color: '#004D27' }]}>اڈہ پاری موڈ</Text>
+                  </View>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.modeTab, activeMode === 'adda' && styles.modeTabActive]}
-              onPress={() => handleModeSwitch('adda')}
-            >
-              <Ionicons name="bus" size={15} color={activeMode === 'adda' ? '#00391A' : '#BCCABC'} />
-              <Text style={[styles.modeTabText, activeMode === 'adda' && styles.modeTabTextActive]}>
-                Adda Pari (اڈہ پاری)
+                <TouchableOpacity
+                  style={[styles.modeTab, activeMode === 'roaming' && styles.modeTabActiveRoaming]}
+                  onPress={() => handleModeSwitch('roaming')}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="navigate" size={16} color={activeMode === 'roaming' ? '#00391A' : '#BCCABC'} />
+                  <View>
+                    <Text style={[styles.modeTabText, activeMode === 'roaming' && styles.modeTabTextActive]}>
+                      Go Independent
+                    </Text>
+                    <Text style={[styles.modeTabSub, activeMode === 'roaming' && { color: '#004D27' }]}>روامنگ موڈ</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            // Modern Stand Enrollment Prompt for Independent Drivers
+            <View style={styles.independentStatusBox}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="sparkles" size={16} color="#59DF89" />
+                <Text style={styles.independentStatusTitle}>Independent Driver Mode Active</Text>
+              </View>
+              <Text style={styles.independentStatusDesc}>
+                You are currently free-floating. Pick up doorstep customer hails anywhere in the city. You pay standard 10% platform commission.
               </Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+          )}
         </View>
 
-        {activeMode === 'adda' ? (
-          // =========================================================================
-          // ADDA PARI MODE COCKPIT (THE MUNSHI & STAND ROTATION VIEW)
-          // =========================================================================
+        {/* =========================================================================
+            ACTIVE TRIP NAVIGATION (IF INDEPENDENT RIDE IN PROGRESS)
+            ========================================================================= */}
+        {activeTrip && (
+          <View style={styles.activeTripCard}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={styles.tripBadge}>
+                <Ionicons name="radio" size={12} color="#59DF89" />
+                <Text style={styles.tripBadgeText}>TRIP IN PROGRESS</Text>
+              </View>
+              <Text style={styles.tripFareText}>Rs. {activeTrip.gross_fare}</Text>
+            </View>
+
+            <View style={{ marginTop: 12, gap: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="person-circle" size={20} color="#59DF89" />
+                <Text style={{ color: '#DCE4E1', fontSize: 14, fontWeight: '700' }}>
+                  {activeTrip.passenger_name}
+                </Text>
+              </View>
+              <View style={styles.routeBox}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Ionicons name="location" size={16} color="#59DF89" />
+                  <Text style={{ color: '#DCE4E1', fontSize: 13, flex: 1 }} numberOfLines={1}>
+                    Pickup: {activeTrip.pickup_address}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                  <Ionicons name="flag" size={16} color="#EF4444" />
+                  <Text style={{ color: '#DCE4E1', fontSize: 13, flex: 1 }} numberOfLines={1}>
+                    Dropoff: {activeTrip.dropoff_address}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={{ marginTop: 14, flexDirection: 'row', gap: 10 }}>
+              {tripStep === 'pickup' ? (
+                <TouchableOpacity style={styles.actionBtnPrimary} onPress={handleArriveAtPickup}>
+                  <Ionicons name="checkmark-circle" size={18} color="#00391A" />
+                  <Text style={styles.actionBtnText}>Arrived at Pickup (پک اپ پہنچ گئے)</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={styles.actionBtnSuccess} onPress={handleCompleteTrip}>
+                  <Ionicons name="cash" size={18} color="#00391A" />
+                  <Text style={styles.actionBtnText}>Complete & Collect Rs. {activeTrip.gross_fare}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* =========================================================================
+            INCOMING RIDE REQUEST POPUP (SIMULATED FOR INDEPENDENT ROAMING)
+            ========================================================================= */}
+        {incoming && !activeTrip && (
+          <View style={styles.incomingOverlay}>
+            <View style={styles.incomingCard}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={styles.incomingRadarBadge}>
+                  <Ionicons name="radio" size={12} color="#00391A" />
+                  <Text style={styles.incomingRadarText}>NEW RIDE REQUEST • {countdown}s</Text>
+                </View>
+                <Text style={styles.incomingFare}>Rs. {incoming.gross_fare}</Text>
+              </View>
+
+              <Text style={styles.passengerTitle}>{incoming.passenger_name} ★ {incoming.passenger_rating}</Text>
+              <View style={styles.incomingRouteBox}>
+                <Text style={styles.incomingPointText}>📍 Pickup: {incoming.pickup_address}</Text>
+                <Text style={styles.incomingPointText}>🏁 Dropoff: {incoming.dropoff_address}</Text>
+                <Text style={styles.incomingMetaText}>Distance: {incoming.distance_km} km • Est: {incoming.est_minutes} mins</Text>
+              </View>
+
+              <View style={styles.feeBreakdownBar}>
+                <Text style={styles.feeBreakdownText}>
+                  Your Take-Home: <Text style={{ color: '#59DF89', fontWeight: 'bold' }}>Rs. {incoming.driver_net}</Text> (10% Watan Fee: Rs. {incoming.platform_fee})
+                </Text>
+              </View>
+
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                <TouchableOpacity style={styles.declineBtn} onPress={handleDeclineRide}>
+                  <Text style={styles.declineBtnText}>Decline (رد)</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.acceptBtn} onPress={handleAcceptRide}>
+                  <Ionicons name="checkmark-done" size={18} color="#00391A" />
+                  <Text style={styles.acceptBtnText}>ACCEPT • Rs. {incoming.gross_fare}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* =========================================================================
+            VIEW 1: ADDA PARI MODE COCKPIT (WHEN ENROLLED AND ADDA MODE ACTIVE)
+            ========================================================================= */}
+        {isAddaRegistered && activeMode === 'adda' ? (
           <View style={{ paddingHorizontal: 16, gap: 14 }}>
-            {/* Hero Pari Queue Status Card */}
+            {/* Stand Pari Status Card */}
             <View style={styles.pariCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View style={styles.bayBadge}>
                   <Ionicons name="list" size={14} color="#00391A" />
-                  <Text style={styles.bayBadgeText}>BAY 3 • بے ۳</Text>
+                  <Text style={styles.bayBadgeText}>BAY #{bayNumber} • بے {bayNumber}</Text>
                 </View>
                 <View style={styles.munshiSyncBadge}>
                   <Ionicons name="shield-checkmark" size={12} color="#59DF89" />
@@ -264,154 +493,184 @@ export default function DriverHome() {
               <View style={styles.pariTurnCenter}>
                 <View style={styles.pariCircle}>
                   <Text style={styles.pariTurnNumber}>#{pariTurn}</Text>
-                  <Text style={styles.pariTurnLabel}>پاری نمبر</Text>
+                  <Text style={styles.pariTurnLabel}>YOUR TURN</Text>
                 </View>
-                <View style={{ flex: 1, marginLeft: 16 }}>
-                  <Text style={styles.standTitle}>Al-Makkah Wagon Stand</Text>
-                  <Text style={styles.routeTitle}>Rawalpindi to Peshawar Line</Text>
+                <View style={{ marginLeft: 16, flex: 1 }}>
+                  <Text style={styles.standTitle}>Pirwadhai Intercity Terminal</Text>
+                  <Text style={styles.routeTitle}>Route: Rawalpindi ➔ Murree Stand</Text>
                   <Text style={styles.departureCountdown}>
-                    Estimated Departure in {countdownMinutes}:{countdownSeconds < 10 ? `0${countdownSeconds}` : countdownSeconds}
+                    Departs in: <Text style={{ color: '#FFB95F', fontWeight: 'bold' }}>{String(countdownMinutes).padStart(2, '0')}:{String(countdownSeconds).padStart(2, '0')} mins</Text>
                   </Text>
                 </View>
               </View>
 
-              {/* Progress Bar (Seats Filled) */}
+              {/* Passenger Capacity Progress */}
               <View style={styles.capacityProgressSection}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <Text style={styles.capacityLabel}>{filledSeats} of {totalSeats} Seats Filled</Text>
-                  <Text style={styles.capacityPercent}>{capacityPercent}%</Text>
+                  <Text style={styles.capacityLabel}>Cabin Manifest Loading</Text>
+                  <Text style={styles.capacityPercent}>{filledSeats}/{totalSeats} Seats Reserved</Text>
                 </View>
                 <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${capacityPercent}%` }]} />
+                  <View style={[styles.progressFill, { width: `${(filledSeats / totalSeats) * 100}%` }]} />
                 </View>
               </View>
             </View>
 
-            {/* Passenger Manifest */}
+            {/* Zero Commission Banner */}
+            <View style={styles.commissionBanner}>
+              <Ionicons name="shield-checkmark" size={24} color="#59DF89" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.commissionTitle}>0% Platform Fee Active (پاری اڈہ بچت)</Text>
+                <Text style={styles.commissionSub}>
+                  Your Adda pays the weekly SaaS platform subscription. You keep 100% of all passenger fares!
+                </Text>
+              </View>
+            </View>
+
+            {/* Live Passenger Manifest */}
             <View style={styles.manifestCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <View>
-                  <Text style={styles.manifestTitle}>Passenger Manifest (مسافر لسٹ)</Text>
-                  <Text style={styles.manifestSub}>Confirmed reservations for this trip</Text>
+                  <Text style={styles.manifestTitle}>Manifest Passengers (مسافروں کی فہرست)</Text>
+                  <Text style={styles.manifestSub}>{filledSeats} Seats Allocated</Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.scanQrBtn}
-                  onPress={() => setScanModalVisible(true)}
-                >
+                <TouchableOpacity style={styles.scanQrBtn} onPress={() => setScanModalVisible(true)}>
                   <Ionicons name="qr-code" size={14} color="#00391A" />
                   <Text style={styles.scanQrBtnText}>Verify QR</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={{ gap: 8 }}>
-                {manifest.map((p) => (
-                  <View key={p.id} style={styles.manifestItem}>
+                {manifest.map((pax) => (
+                  <View key={pax.id} style={styles.manifestItem}>
                     <View style={styles.paxAvatar}>
                       <Ionicons name="person" size={16} color="#59DF89" />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.paxName}>{p.name}</Text>
-                      <Text style={styles.paxMeta}>Seats: {p.seats.join(', ')} • {p.phone}</Text>
+                      <Text style={styles.paxName}>{pax.name}</Text>
+                      <Text style={styles.paxMeta}>Seats: {pax.seats.join(', ')} • {pax.phone}</Text>
                     </View>
                     <View style={styles.verifiedTag}>
-                      <Text style={styles.verifiedTagText}>{p.status}</Text>
+                      <Text style={styles.verifiedTagText}>{pax.status}</Text>
                     </View>
                   </View>
                 ))}
               </View>
             </View>
 
-            {/* 0% Commission Float Status Card */}
-            <View style={styles.commissionBanner}>
-              <Ionicons name="checkmark-circle" size={20} color="#59DF89" />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.commissionTitle}>0% Platform Commission</Text>
-                <Text style={styles.commissionSub}>
-                  You are an official Adda fleet member. You keep 100% of all passenger fares!
-                </Text>
-              </View>
-            </View>
-
-            {/* Depart Stand Primary Action */}
-            <TouchableOpacity
-              style={styles.departBtn}
-              onPress={handleDepartStand}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.departBtnText}>Depart Stand (روانہ ہوں)</Text>
-              <Ionicons name="arrow-forward" size={18} color="#00391A" />
+            {/* Depart Stand Action */}
+            <TouchableOpacity style={styles.departBtn} onPress={handleDepartStand}>
+              <Ionicons name="arrow-forward-circle" size={22} color="#00391A" />
+              <Text style={styles.departBtnText}>Depart Bay & Gate Exit (روانگی اڈہ)</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          // =========================================================================
-          // ROAMING MODE COCKPIT (DOORSTEP ON-DEMAND UBER STYLE)
-          // =========================================================================
+          /* =========================================================================
+             VIEW 2: INDEPENDENT ROAMING COCKPIT (FOR ALL INDEPENDENT DRIVERS)
+             ========================================================================= */
           <View style={{ paddingHorizontal: 16, gap: 14 }}>
-            <View style={styles.roamingHeroCard}>
-              <Text style={styles.roamingStatusTitle}>
-                {online ? 'Looking for Nearby Doorstep Rides...' : 'You are currently Offline'}
-              </Text>
-              <Text style={styles.roamingStatusSub}>
-                {online ? 'Roaming in Saddar, Rawalpindi. Keep app open to receive requests.' : 'Toggle switch below to go Online.'}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
-                <Text style={{ color: '#DCE4E1', fontWeight: 'bold', fontSize: 14 }}>Driver Online</Text>
-                <Switch
-                  value={online}
-                  onValueChange={setOnline}
-                  trackColor={{ false: '#3D4A3F', true: '#00A859' }}
-                  thumbColor={online ? '#59DF89' : '#869487'}
+            {/* Live Interactive Map Box */}
+            <View style={styles.mapCard}>
+              <View style={styles.mapHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="navigate-circle" size={18} color="#59DF89" />
+                  <Text style={styles.mapHeaderTitle}>Live Google Map Radar</Text>
+                </View>
+                <Text style={styles.mapHeaderSub}>Rawalpindi / Islamabad Corridor</Text>
+              </View>
+              <View style={{ height: 220, borderRadius: 12, overflow: 'hidden' }}>
+                <MapView
+                  center={pos}
+                  markers={[
+                    { lat: pos.lat, lng: pos.lng, kind: 'driver', label: 'You (Online)' },
+                    { lat: pos.lat + 0.008, lng: pos.lng + 0.006, kind: 'pickup', label: 'Commercial Market' },
+                  ]}
+                  theme={theme}
+                  height={220}
                 />
               </View>
             </View>
 
-            {/* Sample Doorstep Incoming Offer */}
-            {online && (
-              <View style={styles.incomingCard}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <Text style={styles.incomingBadge}>NEW RIDE OFFER • 15s</Text>
-                  <Text style={styles.incomingFare}>Rs. 380</Text>
+            {/* Radar Searching Animation */}
+            {isOnline && !activeTrip && !incoming && (
+              <View style={styles.radarCard}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <ActivityIndicator size="small" color="#59DF89" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.radarTitle}>Scanning for Passenger Hails...</Text>
+                    <Text style={styles.radarSub}>Doorstep requests nearby will pop up automatically</Text>
+                  </View>
                 </View>
-                <Text style={styles.incomingRoute}>Pickup: Saddar Metro Station, Rawalpindi</Text>
-                <Text style={styles.incomingRoute}>Dropoff: Blue Area, Islamabad (9.2 km)</Text>
-
-                <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-                  <TouchableOpacity
-                    style={styles.declineBtn}
-                    onPress={() => Alert.alert('Declined', 'Offer passed to next captain.')}
-                  >
-                    <Text style={styles.declineBtnText}>Decline</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.acceptBtn}
-                    onPress={() => Alert.alert('Accepted!', 'Heading to passenger pickup at Saddar Metro.')}
-                  >
-                    <Text style={styles.acceptBtnText}>Accept Ride (قبول کریں)</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={styles.simulateTestBtn}
+                  onPress={() => {
+                    setIncoming({
+                      id: `ride-${Date.now()}`,
+                      passenger_name: 'Usman Ghani (عثمان غنی)',
+                      passenger_rating: 4.95,
+                      pickup_address: 'Faizabad Terminal Junction',
+                      dropoff_address: 'Centaurus Mall, Blue Area',
+                      distance_km: 7.2,
+                      est_minutes: 18,
+                      gross_fare: 480,
+                      platform_fee: 48,
+                      driver_net: 432,
+                      vehicle_type: 'Watan Mini / Rickshaw',
+                    });
+                    setCountdown(15);
+                  }}
+                >
+                  <Ionicons name="flash" size={14} color="#00391A" />
+                  <Text style={styles.simulateTestBtnText}>Simulate Instant Passenger Request</Text>
+                </TouchableOpacity>
               </View>
             )}
 
-            {/* Floating Wallet Status */}
+            {/* Floating Prepaid Wallet Card */}
             <View style={styles.walletBox}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View>
-                  <Text style={styles.walletLabel}>PREPAID FLOAT BALANCE</Text>
+                  <Text style={styles.walletLabel}>PREPAID FLOAT WALLET</Text>
                   <Text style={styles.walletValue}>Rs. {earnings.available_balance}</Text>
+                  <Text style={styles.walletSub}>10% Platform fee deducted on completed rides</Text>
                 </View>
-                <Button
-                  title="Top-Up via Raast"
-                  onPress={() => Alert.alert('Raast QR', 'Generating State Bank Raast Dynamic QR Code...')}
-                  variant="primary"
-                  theme={theme}
-                />
+                <TouchableOpacity style={styles.topupBtn} onPress={() => setTopupModalVisible(true)}>
+                  <Ionicons name="add-circle" size={18} color="#00391A" />
+                  <Text style={styles.topupBtnText}>Top-Up Float</Text>
+                </TouchableOpacity>
               </View>
+            </View>
+
+            {/* Adda Enrollment Bridge Card */}
+            <View style={styles.addaEnrollCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="business" size={20} color="#FFB95F" />
+                <Text style={styles.addaEnrollTitle}>
+                  {isAddaRegistered ? 'Adda Fleet Affiliation Active' : 'Want 0% Platform Fee on Stand Trips?'}
+                </Text>
+              </View>
+              <Text style={styles.addaEnrollDesc}>
+                {isAddaRegistered
+                  ? 'You are affiliated with Pirwadhai Stand. You can toggle between Stand Pari Mode (0% fee) and Independent Roaming at will.'
+                  : 'Bus and Wagon stands (Addas) in Pakistan use Watan Stand POS. Once an Adda Munshi enrolls your vehicle, you can queue in their fixed-route Pari and pay 0% commission!'}
+              </Text>
+              <TouchableOpacity
+                style={[styles.enrollActionBtn, { backgroundColor: isAddaRegistered ? '#232C29' : '#006D38' }]}
+                onPress={handleToggleAddaEnrollment}
+              >
+                <Ionicons name={isAddaRegistered ? 'close-circle' : 'checkmark-circle'} size={18} color={isAddaRegistered ? '#EF4444' : '#59DF89'} />
+                <Text style={[styles.enrollActionText, { color: isAddaRegistered ? '#FFB4AB' : '#FFFFFF' }]}>
+                  {isAddaRegistered ? 'Deregister & Return to Pure Independent' : 'Simulate Adda Registration by Munshi'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
       </ScrollView>
 
-      {/* QR Code Boarding Verification Modal */}
+      {/* =========================================================================
+          QR BOARDING VERIFICATION MODAL
+          ========================================================================= */}
       <Modal visible={scanModalVisible} animationType="fade" transparent>
         <View style={styles.modalBackdrop}>
           <View style={styles.scanModalBox}>
@@ -423,7 +682,7 @@ export default function DriverHome() {
             </View>
 
             <View style={styles.cameraBox}>
-              <Ionicons name="qr-code-outline" size={80} color="#59DF89" />
+              <Ionicons name="qr-code-outline" size={70} color="#59DF89" />
               <Text style={styles.cameraInstruction}>Point camera at passenger's Watan App boarding QR</Text>
             </View>
 
@@ -444,6 +703,53 @@ export default function DriverHome() {
           </View>
         </View>
       </Modal>
+
+      {/* =========================================================================
+          TOP-UP PREPAID FLOAT MODAL (RAAST / JAZZCASH / EASYPAISA)
+          ========================================================================= */}
+      <Modal visible={topupModalVisible} animationType="fade" transparent>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.scanModalBox}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={styles.scanModalTitle}>Top-Up Prepaid Float Wallet</Text>
+              <TouchableOpacity onPress={() => setTopupModalVisible(false)}>
+                <Ionicons name="close" size={22} color="#DCE4E1" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ alignItems: 'center', marginVertical: 10 }}>
+              <View style={{ width: 100, height: 100, backgroundColor: '#FFFFFF', padding: 10, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="qr-code" size={80} color="#000000" />
+              </View>
+              <Text style={{ color: '#59DF89', fontSize: 13, fontWeight: '700', marginTop: 8 }}>
+                State Bank Raast P2M Dynamic QR
+              </Text>
+              <Text style={{ color: '#869487', fontSize: 11, textAlign: 'center', marginTop: 2 }}>
+                Scan with JazzCash, Easypaisa, Nayapay, or any Pakistani Bank App
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {[500, 1000, 2000].map((amt) => (
+                <TouchableOpacity
+                  key={amt}
+                  style={styles.quickAmtBtn}
+                  onPress={() => {
+                    setEarnings((prev: any) => ({
+                      ...prev,
+                      available_balance: prev.available_balance + amt,
+                    }));
+                    setTopupModalVisible(false);
+                    Alert.alert('Top-Up Successful', `Rs. ${amt} credited to your prepaid float wallet.`);
+                  }}
+                >
+                  <Text style={styles.quickAmtText}>+Rs. {amt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -451,7 +757,7 @@ export default function DriverHome() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0D1513' },
   navBar: {
-    height: 60,
+    height: 64,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -461,27 +767,66 @@ const styles = StyleSheet.create({
     borderBottomColor: '#232C29',
   },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  brandIconBox: { width: 34, height: 34, borderRadius: 8, backgroundColor: '#00391A', alignItems: 'center', justifyContent: 'center' },
-  brandTitle: { fontSize: 13, fontWeight: '800', color: '#DCE4E1', letterSpacing: 0.5 },
-  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#59DF89' },
-  brandSubtitle: { fontSize: 11, color: '#59DF89', fontWeight: '600' },
-  dutyBadge: { backgroundColor: '#005228', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
-  dutyBadgeText: { fontSize: 10, color: '#59DF89', fontWeight: '700' },
-  profileBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#19211F', alignItems: 'center', justifyContent: 'center' },
-  driverCard: { margin: 16, backgroundColor: '#151D1B', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#232C29', gap: 14 },
-  avatarBox: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#59DF89', alignItems: 'center', justifyContent: 'center' },
+  brandIconBox: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  brandTitle: { fontSize: 13, fontWeight: '900', color: '#DCE4E1', letterSpacing: 0.5 },
+  onlineDot: { width: 8, height: 8, borderRadius: 4 },
+  brandSubtitle: { fontSize: 11, color: '#59DF89', fontWeight: '600', marginTop: 1 },
+  dutyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  dutyIndicator: { width: 8, height: 8, borderRadius: 4 },
+  dutyText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+  profileBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#19211F', alignItems: 'center', justifyContent: 'center' },
+  driverCard: { margin: 16, backgroundColor: '#151D1B', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#232C29', gap: 14 },
+  avatarBox: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#59DF89', alignItems: 'center', justifyContent: 'center' },
   verifiedCheck: { position: 'absolute', bottom: -2, right: -2, width: 16, height: 16, borderRadius: 8, backgroundColor: '#006D38', alignItems: 'center', justifyContent: 'center' },
-  driverName: { fontSize: 15, fontWeight: '700', color: '#DCE4E1' },
-  driverNameEn: { fontSize: 12, color: '#BCCABC', fontWeight: '600' },
-  ratingChip: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#232C29', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
-  ratingText: { fontSize: 11, color: '#FFB95F', fontWeight: '700' },
-  vehicleText: { fontSize: 11, color: '#869487' },
-  modeSwitchRow: { flexDirection: 'row', backgroundColor: '#0D1513', padding: 4, borderRadius: 10, gap: 6 },
-  modeTab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 8 },
-  modeTabActive: { backgroundColor: '#59DF89' },
-  modeTabText: { fontSize: 12, fontWeight: '700', color: '#BCCABC' },
+  driverName: { fontSize: 16, fontWeight: '800', color: '#DCE4E1' },
+  driverNameEn: { fontSize: 13, color: '#BCCABC', fontWeight: '600' },
+  ratingChip: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#232C29', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  ratingText: { fontSize: 12, color: '#FFB95F', fontWeight: '800' },
+  vehicleText: { fontSize: 12, color: '#869487', marginTop: 2 },
+  modeSwitchWrapper: { backgroundColor: '#0D1513', padding: 8, borderRadius: 12, gap: 6, borderWidth: 1, borderColor: '#232C29' },
+  modeSwitchLabel: { fontSize: 10, fontWeight: '800', color: '#869487', letterSpacing: 0.5 },
+  modeSwitchRow: { flexDirection: 'row', gap: 8 },
+  modeTab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 10, borderRadius: 10, backgroundColor: '#19211F' },
+  modeTabActiveAdda: { backgroundColor: '#59DF89' },
+  modeTabActiveRoaming: { backgroundColor: '#59DF89' },
+  modeTabText: { fontSize: 12, fontWeight: '800', color: '#BCCABC' },
   modeTabTextActive: { color: '#00391A' },
-  pariCard: { backgroundColor: '#151D1B', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#232C29', gap: 14 },
+  modeTabSub: { fontSize: 10, color: '#869487' },
+  independentStatusBox: { backgroundColor: '#0D1513', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#232C29' },
+  independentStatusTitle: { fontSize: 12, fontWeight: '800', color: '#59DF89' },
+  independentStatusDesc: { fontSize: 11, color: '#869487', marginTop: 4, lineHeight: 16 },
+  activeTripCard: { marginHorizontal: 16, marginBottom: 14, backgroundColor: '#151D1B', borderRadius: 16, padding: 16, borderWidth: 2, borderColor: '#59DF89' },
+  tripBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#005228', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  tripBadgeText: { fontSize: 11, fontWeight: '800', color: '#59DF89' },
+  tripFareText: { fontSize: 20, fontWeight: '900', color: '#59DF89' },
+  routeBox: { backgroundColor: '#0D1513', padding: 10, borderRadius: 10, marginTop: 4 },
+  actionBtnPrimary: { flex: 1, backgroundColor: '#59DF89', paddingVertical: 14, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  actionBtnSuccess: { flex: 1, backgroundColor: '#00E676', paddingVertical: 14, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  actionBtnText: { fontSize: 14, fontWeight: '900', color: '#00391A' },
+  incomingOverlay: { marginHorizontal: 16, marginBottom: 14 },
+  incomingCard: { backgroundColor: '#151D1B', borderRadius: 16, padding: 16, borderWidth: 2, borderColor: '#FFB95F', gap: 8 },
+  incomingRadarBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFB95F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  incomingRadarText: { fontSize: 11, fontWeight: '900', color: '#00391A' },
+  incomingFare: { fontSize: 22, fontWeight: '900', color: '#59DF89' },
+  passengerTitle: { fontSize: 15, fontWeight: '800', color: '#DCE4E1' },
+  incomingRouteBox: { backgroundColor: '#0D1513', padding: 10, borderRadius: 10, gap: 4 },
+  incomingPointText: { color: '#DCE4E1', fontSize: 12, fontWeight: '600' },
+  incomingMetaText: { color: '#FFB95F', fontSize: 11, fontWeight: '700', marginTop: 2 },
+  feeBreakdownBar: { backgroundColor: '#19211F', padding: 8, borderRadius: 8 },
+  feeBreakdownText: { color: '#BCCABC', fontSize: 11 },
+  declineBtn: { flex: 1, backgroundColor: '#232C29', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
+  declineBtnText: { color: '#FFB4AB', fontSize: 13, fontWeight: '800' },
+  acceptBtn: { flex: 2, backgroundColor: '#59DF89', paddingVertical: 12, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  acceptBtnText: { color: '#00391A', fontSize: 13, fontWeight: '900' },
+  pariCard: { backgroundColor: '#151D1B', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#232C29', gap: 14 },
   bayBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#59DF89', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   bayBadgeText: { fontSize: 11, fontWeight: '800', color: '#00391A' },
   munshiSyncBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#19211F', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
@@ -490,49 +835,56 @@ const styles = StyleSheet.create({
   pariCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#006D38', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#59DF89' },
   pariTurnNumber: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
   pariTurnLabel: { fontSize: 10, color: '#59DF89', fontWeight: 'bold', marginTop: -2 },
-  standTitle: { fontSize: 14, fontWeight: '700', color: '#DCE4E1' },
+  standTitle: { fontSize: 14, fontWeight: '800', color: '#DCE4E1' },
   routeTitle: { fontSize: 12, color: '#FFB95F', fontWeight: '600', marginTop: 2 },
-  departureCountdown: { fontSize: 11, color: '#869487', marginTop: 4 },
+  departureCountdown: { fontSize: 12, color: '#869487', marginTop: 4 },
   capacityProgressSection: { paddingTop: 6, borderTopWidth: 1, borderTopColor: '#232C29' },
   capacityLabel: { fontSize: 12, fontWeight: '700', color: '#59DF89' },
   capacityPercent: { fontSize: 12, fontWeight: '700', color: '#DCE4E1' },
-  progressTrack: { width: '100%', height: 8, backgroundColor: '#0D1513', borderRadius: 4, overflow: 'hidden' },
+  progressTrack: { width: '100%', height: 8, backgroundColor: '#0D1513', borderRadius: 4, overflow: 'hidden', marginTop: 4 },
   progressFill: { height: '100%', backgroundColor: '#59DF89' },
-  manifestCard: { backgroundColor: '#151D1B', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#232C29' },
-  manifestTitle: { fontSize: 13, fontWeight: '700', color: '#DCE4E1' },
-  manifestSub: { fontSize: 11, color: '#869487' },
-  scanQrBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#59DF89', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
-  scanQrBtnText: { fontSize: 11, fontWeight: '800', color: '#00391A' },
-  manifestItem: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#19211F', padding: 10, borderRadius: 8 },
-  paxAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#0D1513', alignItems: 'center', justifyContent: 'center' },
-  paxName: { fontSize: 12, fontWeight: '700', color: '#DCE4E1' },
-  paxMeta: { fontSize: 11, color: '#869487' },
-  verifiedTag: { backgroundColor: '#005228', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  verifiedTagText: { fontSize: 9, color: '#59DF89', fontWeight: '700' },
-  commissionBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#151D1B', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#59DF89' },
+  commissionBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#00522825', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#59DF89' },
   commissionTitle: { fontSize: 12, fontWeight: '800', color: '#59DF89' },
-  commissionSub: { fontSize: 11, color: '#BCCABC', marginTop: 1 },
-  departBtn: { backgroundColor: '#59DF89', paddingVertical: 14, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  departBtnText: { fontSize: 14, fontWeight: '800', color: '#00391A' },
-  // Roaming styles
-  roamingHeroCard: { backgroundColor: '#151D1B', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#232C29' },
-  roamingStatusTitle: { fontSize: 14, fontWeight: '700', color: '#59DF89' },
-  roamingStatusSub: { fontSize: 12, color: '#869487', marginTop: 4 },
-  incomingCard: { backgroundColor: '#151D1B', borderRadius: 14, padding: 16, borderWidth: 2, borderColor: '#FFB95F' },
-  incomingBadge: { fontSize: 11, fontWeight: '800', color: '#FFB95F' },
-  incomingFare: { fontSize: 18, fontWeight: '900', color: '#59DF89' },
-  incomingRoute: { fontSize: 12, color: '#DCE4E1', marginTop: 4 },
-  declineBtn: { flex: 1, backgroundColor: '#232C29', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  declineBtnText: { color: '#FFB4AB', fontSize: 12, fontWeight: '700' },
-  acceptBtn: { flex: 2, backgroundColor: '#59DF89', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  acceptBtnText: { color: '#00391A', fontSize: 12, fontWeight: '800' },
-  walletBox: { backgroundColor: '#151D1B', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#232C29' },
-  walletLabel: { fontSize: 10, fontWeight: '700', color: '#869487' },
-  walletValue: { fontSize: 18, fontWeight: '900', color: '#59DF89', marginTop: 2 },
+  commissionSub: { fontSize: 11, color: '#BCCABC', marginTop: 2, lineHeight: 16 },
+  manifestCard: { backgroundColor: '#151D1B', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#232C29' },
+  manifestTitle: { fontSize: 13, fontWeight: '800', color: '#DCE4E1' },
+  manifestSub: { fontSize: 11, color: '#869487', marginTop: 2 },
+  scanQrBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#59DF89', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  scanQrBtnText: { fontSize: 11, fontWeight: '800', color: '#00391A' },
+  manifestItem: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#19211F', padding: 10, borderRadius: 10 },
+  paxAvatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#0D1513', alignItems: 'center', justifyContent: 'center' },
+  paxName: { fontSize: 12, fontWeight: '800', color: '#DCE4E1' },
+  paxMeta: { fontSize: 11, color: '#869487' },
+  verifiedTag: { backgroundColor: '#005228', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 4 },
+  verifiedTagText: { fontSize: 9, color: '#59DF89', fontWeight: '800' },
+  departBtn: { backgroundColor: '#59DF89', paddingVertical: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  departBtnText: { fontSize: 14, fontWeight: '900', color: '#00391A' },
+  mapCard: { backgroundColor: '#151D1B', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#232C29' },
+  mapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingHorizontal: 4 },
+  mapHeaderTitle: { fontSize: 13, fontWeight: '800', color: '#DCE4E1' },
+  mapHeaderSub: { fontSize: 11, color: '#869487' },
+  radarCard: { backgroundColor: '#151D1B', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#59DF8940', gap: 10 },
+  radarTitle: { fontSize: 13, fontWeight: '800', color: '#59DF89' },
+  radarSub: { fontSize: 11, color: '#869487', marginTop: 1 },
+  simulateTestBtn: { backgroundColor: '#59DF89', paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  simulateTestBtnText: { fontSize: 11, fontWeight: '800', color: '#00391A' },
+  walletBox: { backgroundColor: '#151D1B', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#232C29' },
+  walletLabel: { fontSize: 10, fontWeight: '800', color: '#869487', letterSpacing: 0.5 },
+  walletValue: { fontSize: 20, fontWeight: '900', color: '#59DF89', marginTop: 2 },
+  walletSub: { fontSize: 11, color: '#869487', marginTop: 2 },
+  topupBtn: { backgroundColor: '#59DF89', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  topupBtnText: { fontSize: 12, fontWeight: '800', color: '#00391A' },
+  addaEnrollCard: { backgroundColor: '#151D1B', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#FFB95F50', gap: 8 },
+  addaEnrollTitle: { fontSize: 13, fontWeight: '800', color: '#FFB95F' },
+  addaEnrollDesc: { fontSize: 11, color: '#869487', lineHeight: 16 },
+  enrollActionBtn: { paddingVertical: 12, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
+  enrollActionText: { fontSize: 12, fontWeight: '800' },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', padding: 20 },
-  scanModalBox: { backgroundColor: '#151D1B', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: '#232C29', gap: 14 },
-  scanModalTitle: { fontSize: 14, fontWeight: '700', color: '#DCE4E1' },
-  cameraBox: { height: 180, backgroundColor: '#0D1513', borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#3D4A3F', gap: 10 },
+  scanModalBox: { backgroundColor: '#151D1B', borderRadius: 18, padding: 20, borderWidth: 1, borderColor: '#232C29', gap: 14 },
+  scanModalTitle: { fontSize: 15, fontWeight: '800', color: '#DCE4E1' },
+  cameraBox: { height: 160, backgroundColor: '#0D1513', borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#3D4A3F', gap: 8 },
   cameraInstruction: { fontSize: 11, color: '#869487', textAlign: 'center', paddingHorizontal: 20 },
-  scanManualInput: { backgroundColor: '#0D1513', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, color: '#DCE4E1', fontSize: 13, borderWidth: 1, borderColor: '#3D4A3F', fontCapitalization: 'characters' },
+  scanManualInput: { backgroundColor: '#0D1513', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: '#DCE4E1', fontSize: 13, borderWidth: 1, borderColor: '#3D4A3F' },
+  quickAmtBtn: { flex: 1, backgroundColor: '#006D38', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  quickAmtText: { color: '#FFFFFF', fontWeight: '800', fontSize: 12 },
 });

@@ -145,7 +145,9 @@ export default function VerifyEmailScreen() {
                 {digits.map((digit, i) => (
                   <TextInput
                     key={i}
-                    ref={(ref) => (inputRefs.current[i] = ref)}
+                    ref={(ref) => {
+                      inputRefs.current[i] = ref;
+                    }}
                     style={[
                       styles.digitBox,
                       {

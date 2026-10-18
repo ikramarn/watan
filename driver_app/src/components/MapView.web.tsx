@@ -26,17 +26,16 @@ const ICON_MAP: Record<MapMarker['kind'], { name: string; color: string; label: 
 };
 
 export default function MapView({ center, markers = [], theme, height = '100%', showRoute }: Props) {
-  const isDark = theme.bg === '#000' || theme.bg === '#0a0a0a' || theme.bg === '#18181B';
-  const tileLayerUrl = isDark
-    ? 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png'
-    : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const isDark = theme.bg === '#000' || theme.bg === '#0a0a0a' || theme.bg === '#18181B' || theme.bg === '#0D1513';
+  // Google Maps standard roadmap tiles with Pakistan road network, chowks, and landmarks
+  const tileLayerUrl = 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
 
   const markersJson = JSON.stringify(
     markers.map((m) => ({
       lat: m.lat,
       lng: m.lng,
       label: m.label || ICON_MAP[m.kind]?.label || '',
-      color: ICON_MAP[m.kind]?.color || '#3B82F6',
+      color: ICON_MAP[m.kind]?.color || '#006837',
       icon: m.kind,
     }))
   );
@@ -52,36 +51,44 @@ export default function MapView({ center, markers = [], theme, height = '100%', 
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <style>
-          html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: ${isDark ? '#121212' : '#f0f0f0'}; overflow: hidden; }
+          html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #e5e3df; overflow: hidden; }
           .leaflet-control-attribution { display: none !important; }
           .custom-pin {
             display: flex; align-items: center; justify-content: center;
-            width: 28px; height: 28px; border-radius: 14px;
-            color: #fff; font-family: sans-serif; font-weight: bold; font-size: 11px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4); border: 2px solid #fff;
+            width: 32px; height: 32px; border-radius: 16px;
+            color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: bold; font-size: 14px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.35); border: 2.5px solid #fff;
           }
         </style>
       </head>
       <body>
         <div id="map"></div>
         <script>
-          const centerLat = ${center.lat || 37.7749};
-          const centerLng = ${center.lng || -122.4194};
+          const centerLat = ${center?.lat || 33.6007};
+          const centerLng = ${center?.lng || 73.0679};
           const map = L.map('map', { zoomControl: false }).setView([centerLat, centerLng], 14);
 
-          L.tileLayer('${tileLayerUrl}', { maxZoom: 19 }).addTo(map);
+          L.tileLayer('${tileLayerUrl}', { maxZoom: 20, attribution: 'Google Maps' }).addTo(map);
 
           const markersData = ${markersJson};
           const routeData = ${routeJson};
 
           markersData.forEach(m => {
+            let symbol = '🚗';
+            if (m.icon === 'pickup') symbol = '📍';
+            else if (m.icon === 'destination') symbol = '🏁';
+            else if (m.icon === 'self') symbol = '🟢';
+            else if (m.label && m.label.toLowerCase().includes('rickshaw')) symbol = '🛺';
+            else if (m.label && m.label.toLowerCase().includes('bike')) symbol = '🏍️';
+            else if (m.label && m.label.toLowerCase().includes('wagon')) symbol = '🚐';
+
             const icon = L.divIcon({
               className: 'custom-icon',
-              html: '<div class="custom-pin" style="background-color:' + m.color + '">' + (m.icon === 'car' ? '🚗' : m.icon === 'pickup' ? '📍' : '🏁') + '</div>',
-              iconSize: [28, 28],
-              iconAnchor: [14, 14]
+              html: '<div class="custom-pin" style="background-color:' + m.color + '">' + symbol + '</div>',
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
             });
-            L.marker([m.lat, m.lng], { icon }).addTo(map).bindPopup(m.label);
+            L.marker([m.lat, m.lng], { icon }).addTo(map).bindPopup('<b>' + m.label + '</b>');
           });
 
           if (routeData && routeData.from && routeData.to) {
@@ -89,7 +96,7 @@ export default function MapView({ center, markers = [], theme, height = '100%', 
               [routeData.from.lat, routeData.from.lng],
               [routeData.to.lat, routeData.to.lng]
             ];
-            const polyline = L.polyline(latlngs, { color: '${theme.accent || '#FACC15'}', weight: 4, dashArray: '6, 6' }).addTo(map);
+            const polyline = L.polyline(latlngs, { color: '#006837', weight: 5, opacity: 0.85 }).addTo(map);
             map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
           }
         </script>

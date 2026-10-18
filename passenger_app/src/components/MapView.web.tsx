@@ -38,44 +38,53 @@ export default function MapView({ center, markers = [], theme, height = '100%', 
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <style>
-          body, html, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #111; }
+          body, html, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #e5e3df; overflow: hidden; }
+          .leaflet-control-attribution { display: none !important; }
           .custom-pin {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            border: 2.5px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
             font-size: 14px;
-          }
-          .leaflet-tile {
-            filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+            color: #fff;
           }
         </style>
       </head>
       <body>
         <div id="map"></div>
         <script>
-          const map = L.map('map', { zoomControl: false }).setView([${center.lat}, ${center.lng}], 13);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
+          const centerLat = ${center?.lat || 33.6007};
+          const centerLng = ${center?.lng || 73.0679};
+          const map = L.map('map', { zoomControl: false }).setView([centerLat, centerLng], 14);
+          L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            attribution: 'Google Maps'
           }).addTo(map);
 
           const markersData = ${JSON.stringify(markers)};
           markersData.forEach(m => {
-            const color = ${JSON.stringify(COLOR_MAP)}[m.kind] || '#FACC15';
-            const iconHtml = \`<div class="custom-pin" style="background-color: \${color};">📍</div>\`;
+            const color = ${JSON.stringify(COLOR_MAP)}[m.kind] || '#006837';
+            let symbol = '🚗';
+            if (m.kind === 'pickup') symbol = '📍';
+            else if (m.kind === 'destination') symbol = '🏁';
+            else if (m.kind === 'self') symbol = '🟢';
+            else if (m.label && m.label.toLowerCase().includes('rickshaw')) symbol = '🛺';
+            else if (m.label && m.label.toLowerCase().includes('bike')) symbol = '🏍️';
+            else if (m.label && m.label.toLowerCase().includes('wagon')) symbol = '🚐';
+
+            const iconHtml = '<div class="custom-pin" style="background-color: ' + color + ';">' + symbol + '</div>';
             const customIcon = L.divIcon({
               className: 'custom-div-icon',
               html: iconHtml,
-              iconSize: [28, 28],
-              iconAnchor: [14, 14]
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
             });
             const marker = L.marker([m.lat, m.lng], { icon: customIcon }).addTo(map);
-            if (m.label) marker.bindPopup(m.label);
+            if (m.label) marker.bindPopup('<b>' + m.label + '</b>');
           });
 
           ${
@@ -85,7 +94,7 @@ export default function MapView({ center, markers = [], theme, height = '100%', 
               [${showRoute.from.lat}, ${showRoute.from.lng}],
               [${showRoute.to.lat}, ${showRoute.to.lng}]
             ];
-            const polyline = L.polyline(latlngs, { color: '#FACC15', weight: 4, opacity: 0.85, dashArray: '8, 8' }).addTo(map);
+            const polyline = L.polyline(latlngs, { color: '#006837', weight: 5, opacity: 0.85 }).addTo(map);
             map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
           `
               : ''
@@ -97,7 +106,7 @@ export default function MapView({ center, markers = [], theme, height = '100%', 
 
   return (
     <View style={[styles.container, { height: height as any }]} testID="map-view-web">
-      {/* Web iframe rendering Leaflet for zero-dependency native feel on browser */}
+      {/* Web iframe rendering Leaflet with Google Maps tiles */}
       <iframe
         ref={iframeRef}
         srcDoc={mapHtml}
@@ -107,7 +116,7 @@ export default function MapView({ center, markers = [], theme, height = '100%', 
           border: 'none',
           borderRadius: 16,
         }}
-        title="GetChum Web Map"
+        title="Watan Pakistan Map"
       />
     </View>
   );
