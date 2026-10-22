@@ -60,7 +60,7 @@ export function KycManagementView() {
   return (
     <div style={{ marginTop: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>UK 1-Car Operator & Driver KYC Verification Queue</h2>
+        <h2>Watan Driver & Fleet KYC Verification Queue (وطن)</h2>
         <button type="button" onClick={fetchPending} disabled={loading}>
           {loading ? 'Refreshing...' : 'Refresh Queue'}
         </button>
@@ -77,9 +77,9 @@ export function KycManagementView() {
           <thead>
             <tr style={{ textAlign: 'left', borderBottom: '1px solid #3f3f46' }}>
               <th style={{ padding: '8px' }}>Driver / Operator</th>
-              <th style={{ padding: '8px' }}>Council & Operator Lic #</th>
-              <th style={{ padding: '8px' }}>PHV Badge #</th>
-              <th style={{ padding: '8px' }}>Insurance / MOT</th>
+              <th style={{ padding: '8px' }}>RTA & Operator Lic #</th>
+              <th style={{ padding: '8px' }}>Driver License / Badge #</th>
+              <th style={{ padding: '8px' }}>Insurance & Fitness Certificate</th>
               <th style={{ padding: '8px' }}>Vehicle Spec</th>
               <th style={{ padding: '8px' }}>Submitted</th>
               <th style={{ padding: '8px' }}>Actions</th>
@@ -94,7 +94,7 @@ export function KycManagementView() {
                   <small style={{ color: '#a1a1aa' }}>{item.driver_email}</small>
                 </td>
                 <td style={{ padding: '8px' }}>
-                  <strong>{item.council_name || 'UK Council'}</strong>
+                  <strong>{item.council_name || 'Regional Transport Authority (RTA)'}</strong>
                   <br />
                   <small style={{ color: '#a1a1aa' }}>Lic: {item.operator_license_number || 'N/A'}</small>
                 </td>

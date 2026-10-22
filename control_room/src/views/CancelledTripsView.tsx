@@ -116,7 +116,7 @@ export function CancelledTripsView() {
 
         <div className="metric-card" style={{ borderLeft: '3px solid #10b981' }}>
           <div className="metric-title">Cancellation Fees</div>
-          <div className="metric-value" style={{ color: '#34d399' }}>£{totalFeesCollected.toFixed(2)}</div>
+          <div className="metric-value" style={{ color: '#34d399' }}>Rs. {totalFeesCollected.toLocaleString()}</div>
           <div className="metric-sub">Compensated to drivers</div>
         </div>
       </div>
@@ -125,7 +125,7 @@ export function CancelledTripsView() {
       <div style={{ display: 'flex', gap: '12px', marginBottom: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           type="text"
-          placeholder="🔍 Search customer name, phone (+44), driver, or address..."
+          placeholder="🔍 Search customer name, phone (+92), driver, or address..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
@@ -291,9 +291,9 @@ export function CancelledTripsView() {
 
                   <td style={{ fontWeight: 700, fontSize: '14px', whiteSpace: 'nowrap' }}>
                     {ride.cancellation_fee && ride.cancellation_fee > 0 ? (
-                      <span style={{ color: '#f87171' }}>£{Number(ride.cancellation_fee).toFixed(2)}</span>
+                      <span style={{ color: '#f87171' }}>Rs. {Number(ride.cancellation_fee).toLocaleString()}</span>
                     ) : (
-                      <span style={{ color: 'var(--text-faint)' }}>£0.00</span>
+                      <span style={{ color: 'var(--text-faint)' }}>Rs. 0</span>
                     )}
                   </td>
 
@@ -396,7 +396,7 @@ export function CancelledTripsView() {
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>UK Plate Number</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Registration Plate</div>
                     <div style={{ fontSize: '13px', fontWeight: 700, color: '#fde047', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                       {selectedTrip.vehicle_plate || '—'}
                     </div>
@@ -422,7 +422,7 @@ export function CancelledTripsView() {
                 <div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Cancellation Fee</div>
                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginTop: '2px' }}>
-                    £{Number(selectedTrip.cancellation_fee || 0).toFixed(2)}
+                    Rs. {Number(selectedTrip.cancellation_fee || 0).toLocaleString()}
                   </div>
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>

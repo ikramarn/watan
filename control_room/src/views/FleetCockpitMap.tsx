@@ -23,8 +23,8 @@ interface FleetCockpitMapProps {
   onAssignRide?: (ride: PendingRide) => void
 }
 
-const DEFAULT_CENTER: [number, number] = [56.1165, -3.1700] // Fife & Edinburgh Region
-const DEFAULT_ZOOM = 11
+const DEFAULT_CENTER: [number, number] = [33.6007, 73.0679] // Rawalpindi & Islamabad (Twin Cities)
+const DEFAULT_ZOOM = 12
 
 export function FleetCockpitMap({
   drivers,
@@ -162,7 +162,7 @@ export function FleetCockpitMap({
         <div class="cockpit-popup-card">
           <div class="cockpit-popup-title">
             <span>⏳ Ride Request</span>
-            <span style="color: #fbbf24; font-weight: 800;">£${(ride.fare || 0).toFixed(2)}</span>
+            <span style="color: #fbbf24; font-weight: 800;">Rs. ${(ride.fare || 0).toFixed(0)}</span>
           </div>
           <div class="cockpit-popup-body">
             <div><strong>Passenger:</strong> ${riderName}</div>
@@ -233,7 +233,7 @@ export function FleetCockpitMap({
         <div className="map-toolbar-left">
           <div className="radar-badge">
             <span className="radar-ping-dot" />
-            <span>Fife & Edinburgh Fleet Radar</span>
+            <span>Watan Fleet & Stand Radar (وطن)</span>
           </div>
 
           <button

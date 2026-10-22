@@ -1043,8 +1043,9 @@ async def get_compliance_summary(dispatcher: dict = Depends(require_role("dispat
     }
 
 
-@router.get("/compliance/fife-audit-export")
-async def export_fife_statutory_audit(
+@router.get("/compliance/transport-audit-export")
+@router.get("/compliance/fife-audit-export", include_in_schema=False)
+async def export_transport_statutory_audit(
     dispatcher: dict = Depends(require_role("dispatcher")),
     start: Optional[str] = Query(default=None, description="Start date filter (YYYY-MM-DD or ISO)"),
     end: Optional[str] = Query(default=None, description="End date filter (YYYY-MM-DD or ISO)"),

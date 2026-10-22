@@ -125,7 +125,7 @@ export function DriverRosterView() {
         <div>
           <h2>👥 Fleet Directory & Driver Profiles</h2>
           <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#94a3b8' }}>
-            Inspect full driver profiles, live GPS tracking, vehicle specifications, and Fife Council statutory compliance.
+            Inspect full driver profiles, live GPS tracking, vehicle specifications, and Regional Transport Authority (RTA) statutory compliance.
           </p>
         </div>
         <button
@@ -237,7 +237,7 @@ export function DriverRosterView() {
 
                 <div className="driver-roster-detail">
                   <span className={`driver-inline-compliance ${isCompliant ? 'compliant' : 'non-compliant'}`}>
-                    {isCompliant ? '✓ Fife Compliant' : '⛔ Expired'}
+                    {isCompliant ? '✓ RTA Compliant' : '⛔ Expired'}
                   </span>
                 </div>
 

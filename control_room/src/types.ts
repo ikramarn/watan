@@ -3,7 +3,7 @@
  * existing user/role shapes (see backend/app/models.py).
  */
 
-export type Role = 'passenger' | 'driver' | 'dispatcher'
+export type Role = 'passenger' | 'driver' | 'munshi' | 'dispatcher' | 'admin'
 
 export interface User {
   id: string

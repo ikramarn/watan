@@ -293,7 +293,7 @@ export function PendingRequestsTable({ autoDispatch = true }: PendingRequestsTab
                 <td>{ride.pickup?.address ?? '—'}</td>
                 <td>{ride.destination?.address ?? '—'}</td>
                 <td>{ride.ride_type ?? '—'}</td>
-                <td>{ride.fare != null ? `£${ride.fare.toFixed(2)}` : '—'}</td>
+                <td>{ride.fare != null ? `Rs. ${Math.round(ride.fare).toLocaleString()}` : '—'}</td>
                 <td>
                   {Math.round(ride.wait_seconds)}s
                   {ride.is_aging && <span className="pending-aging-badge">Aging</span>}

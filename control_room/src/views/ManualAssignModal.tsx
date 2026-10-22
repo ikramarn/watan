@@ -84,7 +84,7 @@ export function ManualAssignModal({ ride, onClose, onAssigned }: ManualAssignMod
 
     const chosenDriver = drivers.find((d) => d.driver_id === targetDriverId)
     if (chosenDriver && chosenDriver.is_compliant === false) {
-      setSubmitError(`Compliance Hard Stop (Fife Council): Cannot assign ${chosenDriver.name} because ${chosenDriver.compliance_reason || 'statutory documents have expired'}.`)
+      setSubmitError(`Compliance Hard Stop (RTA): Cannot assign ${chosenDriver.name} because ${chosenDriver.compliance_reason || 'statutory documents have expired'}.`)
       return
     }
 
@@ -133,7 +133,7 @@ export function ManualAssignModal({ ride, onClose, onAssigned }: ManualAssignMod
         )}
 
         {!loadingDrivers && !loadError && drivers.length === 0 && (
-          <p style={{ color: '#94a3b8', padding: '12px 0' }}>No online, free drivers are available right now in Fife.</p>
+          <p style={{ color: '#94a3b8', padding: '12px 0' }}>No online, free drivers are available right now in this zone.</p>
         )}
 
         {!loadingDrivers && !loadError && drivers.length > 0 && (
@@ -164,7 +164,7 @@ export function ManualAssignModal({ ride, onClose, onAssigned }: ManualAssignMod
                         </span>
                       ) : (
                         <span style={{ fontSize: '10px', background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', border: '1px solid #10b981', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                          ✓ Fife Compliant
+                          ✓ RTA Compliant
                         </span>
                       )}
                     </div>
@@ -173,7 +173,7 @@ export function ManualAssignModal({ ride, onClose, onAssigned }: ManualAssignMod
                       <span className="driver-plate">{driver.vehicle_plate || 'CAB-001'}</span>
                       <span className="driver-tier">{driver.vehicle_type?.toUpperCase() || 'ECONOMY'}</span>
                       {driver.phv_badge_number && (
-                        <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Badge: {driver.phv_badge_number}</span>
+                        <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>RTA Lic: {driver.phv_badge_number}</span>
                       )}
                     </div>
                     {driver.is_compliant === false && driver.compliance_reason && (

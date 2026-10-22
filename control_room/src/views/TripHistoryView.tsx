@@ -241,9 +241,9 @@ export function TripHistoryView() {
                     </td>
 
                     <td style={{ fontWeight: 700, fontSize: '14px', whiteSpace: 'nowrap' }}>
-                      £{Number(ride.fare || 0).toFixed(2)}
+                      Rs. {Number(ride.fare || 0).toLocaleString()}
                       {ride.cancellation_fee && ride.cancellation_fee > 0 ? (
-                        <div style={{ color: '#ef4444', fontSize: '11px' }}>Fee: £{Number(ride.cancellation_fee).toFixed(2)}</div>
+                        <div style={{ color: '#ef4444', fontSize: '11px' }}>Fee: Rs. {Number(ride.cancellation_fee).toLocaleString()}</div>
                       ) : null}
                     </td>
 
@@ -347,7 +347,7 @@ export function TripHistoryView() {
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>UK Plate Number</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Registration Plate</div>
                     <div style={{ fontSize: '13px', fontWeight: 700, color: '#fde047', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                       {selectedTrip.vehicle_plate || '—'}
                     </div>
@@ -367,7 +367,7 @@ export function TripHistoryView() {
                 <div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Total Fare</div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#34d399', marginTop: '2px' }}>
-                    £{Number(selectedTrip.fare || 0).toFixed(2)}
+                    Rs. {Number(selectedTrip.fare || 0).toLocaleString()}
                   </div>
                 </div>
                 <div>
@@ -379,7 +379,7 @@ export function TripHistoryView() {
                 {selectedTrip.status === 'cancelled' && (
                   <div style={{ gridColumn: 'span 2', background: 'rgba(239, 68, 68, 0.08)', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                     <div style={{ color: '#fca5a5', fontSize: '12px', fontWeight: 700 }}>
-                      ⚠️ Cancelled by {selectedTrip.cancelled_by || 'Unknown'} · Fee Charged: £{Number(selectedTrip.cancellation_fee || 0).toFixed(2)}
+                      ⚠️ Cancelled by {selectedTrip.cancelled_by || 'Unknown'} · Fee Charged: Rs. {Number(selectedTrip.cancellation_fee || 0).toLocaleString()}
                     </div>
                   </div>
                 )}

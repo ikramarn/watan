@@ -158,7 +158,7 @@ export async function downloadTransportAuditCsv(start?: string, end?: string): P
   if (end) params.set('end', end)
   params.set('format', 'csv')
   const base = env.apiBaseUrl.replace(/\/$/, '')
-  const url = `${base}/api/dispatch/compliance/fife-audit-export?${params.toString()}`
+  const url = `${base}/api/dispatch/compliance/transport-audit-export?${params.toString()}`
 
   const res = await fetch(url, {
     headers: {
@@ -179,6 +179,4 @@ export async function downloadTransportAuditCsv(start?: string, end?: string): P
   a.remove()
   window.URL.revokeObjectURL(downloadUrl)
 }
-
-export const downloadFifeAuditCsv = downloadTransportAuditCsv
 

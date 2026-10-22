@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../lib/auth'
-import { apiRequest, downloadFifeAuditCsv } from '../lib/api'
+import { apiRequest, downloadTransportAuditCsv } from '../lib/api'
 import { dispatchSocket } from '../lib/dispatchSocket'
 import { ActiveRidesTable } from './ActiveRidesTable'
 import type { ActiveRide } from './ActiveRidesTable'
@@ -369,14 +369,14 @@ export function DashboardShell() {
                 onClick={async () => {
                   setAdminMenuOpen(false)
                   try {
-                    await downloadFifeAuditCsv()
+                    await downloadTransportAuditCsv()
                   } catch (err) {
-                    alert('Failed to download Fife Council audit log: ' + String(err))
+                    alert('Failed to download RTA statutory audit log: ' + String(err))
                   }
                 }}
-                title="Download official Fife Council statutory booking record CSV"
+                title="Download official Regional Transport Authority (RTA) statutory booking record CSV"
               >
-                <span>📥 Export Fife Audit (CSV)</span>
+                <span>📥 Export RTA Audit (CSV)</span>
               </button>
             </div>
           )}
@@ -573,7 +573,7 @@ export function DashboardShell() {
                             <span className="cockpit-ride-passenger">
                               👤 {ride.passenger_name || 'Passenger'}
                             </span>
-                            <span className="cockpit-ride-fare">£{(ride.fare || 0).toFixed(2)}</span>
+                            <span className="cockpit-ride-fare">Rs. {(ride.fare || 0).toFixed(0)}</span>
                           </div>
 
                           <div className="cockpit-route-row">
@@ -675,9 +675,9 @@ export function DashboardShell() {
                     color: 'var(--text-muted)',
                   }}
                 >
-                  <span>Model: <strong>Route B SaaS</strong></span>
-                  <span>Platform Fee: <strong style={{ color: 'var(--primary)' }}>8%</strong></span>
-                  <span>Driver Share: <strong style={{ color: '#34d399' }}>92%</strong></span>
+                  <span>Model: <strong>Watan Hybrid</strong></span>
+                  <span>Platform Fee: <strong style={{ color: 'var(--primary)' }}>10% (0% Adda)</strong></span>
+                  <span>Driver Share: <strong style={{ color: '#34d399' }}>90% / 100%</strong></span>
                 </div>
                 <div
                   style={{
@@ -688,7 +688,7 @@ export function DashboardShell() {
                     paddingTop: '6px',
                   }}
                 >
-                  Licensing: Fife Council & City of Edinburgh Council
+                  Licensing: Regional Transport Authority (RTA) Pakistan
                 </div>
               </div>
             </aside>

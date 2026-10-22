@@ -78,7 +78,7 @@ export function DriverProfileModal({ driver, onClose }: DriverProfileModalProps)
                   {!driver.online ? '⚫ Offline' : isBusy ? '🔵 On Active Trip' : '🟢 Online & Available'}
                 </span>
                 <span className={`driver-compliance-badge ${isCompliant ? 'compliant' : 'non-compliant'}`}>
-                  {isCompliant ? '✓ Fife Council Verified' : '⛔ Expiry Block Active'}
+                  {isCompliant ? '✓ RTA Verified' : '⛔ Expiry Block Active'}
                 </span>
               </div>
             </div>
@@ -172,14 +172,14 @@ export function DriverProfileModal({ driver, onClose }: DriverProfileModalProps)
             </div>
           </div>
 
-          {/* Section 3: Fife Council Statutory Regulatory Dossier */}
+          {/* Section 3: RTA Statutory Regulatory Dossier */}
           <div className="driver-section-card" style={{ borderColor: isCompliant ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <h4 className="driver-section-heading" style={{ margin: 0 }}>
-                🏛️ Fife Council Statutory Compliance
+                🏛️ RTA & Traffic Police Statutory Compliance
               </h4>
               <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>
-                Civic Govt (Scotland) Act 1982
+                Motor Vehicles Ordinance / RTA Act
               </span>
             </div>
 
@@ -187,14 +187,14 @@ export function DriverProfileModal({ driver, onClose }: DriverProfileModalProps)
               <div className="driver-info-item">
                 <span className="driver-info-label">Licensing Authority</span>
                 <span className="driver-info-val" style={{ fontWeight: 600, color: '#f8fafc' }}>
-                  {driver.council_name || 'Fife Council'}
+                  {driver.council_name || 'Regional Transport Authority (RTA)'}
                 </span>
               </div>
 
               <div className="driver-info-item">
-                <span className="driver-info-label">Fife Driver PHV Badge #</span>
+                <span className="driver-info-label">RTA Driver License / Badge #</span>
                 <span className="driver-info-val" style={{ fontFamily: 'monospace', color: '#fbbf24' }}>
-                  {driver.phv_badge_number || 'FC-PHD-8821'}
+                  {driver.phv_badge_number || 'RTA-ISB-8821'}
                 </span>
               </div>
 
