@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const me = await apiRequest<User>('/api/auth/me')
         if (cancelled) return
-        if (me.role === 'dispatcher') {
+        if (me.role === 'dispatcher' || me.role === 'admin') {
           setUser(me)
         } else {
           clearTokens()
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       auth: false,
     })
 
-    if (data.user.role !== 'dispatcher') {
+    if (data.user.role !== 'dispatcher' && data.user.role !== 'admin') {
       // UX guard only: do not store tokens for a non-dispatcher account.
       throw new ApiError(NOT_DISPATCHER_MESSAGE, 403, data)
     }

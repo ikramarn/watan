@@ -93,21 +93,49 @@ async def seed_demo_accounts() -> None:
 
     demos = [
         {
+            "email": "admin@demo.com",
+            "password": "Admin123!",
+            "name": "Watan Demo Dispatcher",
+            "role": "dispatcher",
+            "phone": "+923000000001",
+        },
+        {
+            "email": "admin@watan.pk",
+            "password": "WatanAdmin2026!",
+            "name": "Watan Operations Admin",
+            "role": "dispatcher",
+            "phone": "+923000000002",
+        },
+        {
+            "email": "dispatcher@watan.pk",
+            "password": "WatanDispatch2026!",
+            "name": "Watan Dispatch Controller",
+            "role": "dispatcher",
+            "phone": "+923000000003",
+        },
+        {
+            "email": "munshi@demo.com",
+            "password": "Munshi123!",
+            "name": "Pirwadhai Stand Munshi",
+            "role": "munshi",
+            "phone": "+923005554921",
+        },
+        {
             "email": "passenger@demo.com",
             "password": "Passenger123!",
             "name": "Alex Rivera",
             "role": "passenger",
-            "phone": "+1 555 010 0101",
+            "phone": "+923000100101",
         },
         {
             "email": "driver@demo.com",
             "password": "Driver123!",
             "name": "Jordan Lee",
             "role": "driver",
-            "phone": "+1 555 020 0202",
-            "vehicle_make": "Toyota Camry · Black",
-            "vehicle_plate": "RIDE-001",
-            "vehicle_type": "economy",
+            "phone": "+923000200202",
+            "vehicle_make": "Suzuki Alto · White",
+            "vehicle_plate": "RPL-4921",
+            "vehicle_type": "car_mini",
         },
     ]
 
@@ -173,8 +201,18 @@ async def seed_demo_accounts() -> None:
 
 @app.on_event("startup")
 async def on_startup():
-    await startup_indexes()
-    await seed_demo_accounts()
+    async def _init_db_in_bg():
+        for attempt in range(12):
+            try:
+                await startup_indexes()
+                await seed_demo_accounts()
+                logging.info("Database indexes and demo accounts successfully initialized.")
+                break
+            except Exception as exc:
+                logging.warning("Database init waiting for Mongo (attempt %d/12): %s", attempt + 1, exc)
+                await asyncio.sleep(2)
+
+    asyncio.create_task(_init_db_in_bg())
     # Start Redis pub/sub subscriber in background (fan-out to local WebSocket clients)
     from .services.realtime import redis_subscriber
     asyncio.create_task(redis_subscriber())

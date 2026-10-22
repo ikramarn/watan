@@ -180,6 +180,8 @@ def compute_fare(
         "currency": CURRENCY,
         "currency_symbol": CURRENCY_SYMBOL,
         "ride_type": ride_type,
+        "distance_km": distance_km,
+        "duration_min": duration_min,
         "surge_multiplier": surge_multiplier,
         "tips": tips,
         "total_amount": total_amount,

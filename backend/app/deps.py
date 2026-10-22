@@ -45,7 +45,8 @@ async def get_optional_user(request: Request) -> dict | None:
 
 def require_role(role: str):
     async def _require(user: dict = Depends(get_current_user)) -> dict:
-        if user.get("role") != role:
+        user_role = user.get("role")
+        if user_role != role and not (role == "dispatcher" and user_role == "admin"):
             raise HTTPException(status_code=403, detail=f"Requires {role} role")
         return user
 

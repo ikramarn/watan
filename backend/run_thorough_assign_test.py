@@ -25,23 +25,19 @@ def req(path, method="GET", body=None, token=None):
 
 def test_full_pipeline():
     print("=== STEP 1: AUTHENTICATION ===")
-    status, d_data = req("/api/auth/login", "POST", {"email": "admin@getchum.co.uk", "password": "ChumAdmin2026!"})
+    status, d_data = req("/api/auth/login", "POST", {"email": "admin@demo.com", "password": "Admin123!"})
     if status != 200:
-        status, d_data = req("/api/auth/login", "POST", {"email": "dispatcher@demo.com", "password": "password123"})
+        status, d_data = req("/api/auth/login", "POST", {"email": "admin@watan.pk", "password": "WatanAdmin2026!"})
     assert status == 200, f"Dispatcher login failed: {d_data}"
     dispatcher_token = d_data["access_token"]
     print("PASS: Dispatcher authenticated successfully")
 
-    status, p_data = req("/api/auth/login", "POST", {"email": "passenger1@demo.com", "password": "Passenger123!"})
-    if status != 200:
-        status, p_data = req("/api/auth/login", "POST", {"email": "passenger@demo.com", "password": "password123"})
+    status, p_data = req("/api/auth/login", "POST", {"email": "passenger@demo.com", "password": "Passenger123!"})
     assert status == 200, f"Passenger login failed: {p_data}"
     passenger_token = p_data["access_token"]
     print("PASS: Passenger authenticated successfully")
 
-    status, drv_data = req("/api/auth/login", "POST", {"email": "driver1@demo.com", "password": "Driver123!"})
-    if status != 200:
-        status, drv_data = req("/api/auth/login", "POST", {"email": "driver1@demo.com", "password": "password123"})
+    status, drv_data = req("/api/auth/login", "POST", {"email": "driver@demo.com", "password": "Driver123!"})
     assert status == 200, f"Driver login failed: {drv_data}"
     driver_token = drv_data["access_token"]
     driver_id = drv_data["user"]["id"]
