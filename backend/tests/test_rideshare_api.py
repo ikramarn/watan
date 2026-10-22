@@ -17,7 +17,7 @@ TEST_PASSENGER = {
     "password": "TestPass123!",
     "name": "Test Passenger",
     "role": "passenger",
-    "phone": "+1 555 111 2222"
+    "phone": "+923001112222"
 }
 
 TEST_DRIVER = {
@@ -25,19 +25,19 @@ TEST_DRIVER = {
     "password": "TestPass123!",
     "name": "Test Driver",
     "role": "driver",
-    "phone": "+1 555 333 4444",
-    "vehicle_make": "Honda Accord",
-    "vehicle_plate": "TEST-001",
-    "vehicle_type": "economy"
+    "phone": "+923003334444",
+    "vehicle_make": "Suzuki Alto",
+    "vehicle_plate": "ICT-001",
+    "vehicle_type": "car_mini"
 }
 
 # Demo credentials from test_credentials.md
 DEMO_PASSENGER = {"email": "passenger@demo.com", "password": "Passenger123!", "role": "passenger"}
 DEMO_DRIVER = {"email": "driver@demo.com", "password": "Driver123!", "role": "driver"}
 
-# Test locations (SF area)
-PICKUP = {"lat": 37.7749, "lng": -122.4194, "address": "Market St, SF"}
-DEST = {"lat": 37.6213, "lng": -122.379, "address": "SFO Airport"}
+# Test locations (Rawalpindi / Islamabad Twin Cities)
+PICKUP = {"lat": 33.6007, "lng": 73.0679, "address": "Saddar, Rawalpindi"}
+DEST = {"lat": 33.7294, "lng": 73.0931, "address": "F-7 Markaz, Islamabad"}
 
 
 @pytest.fixture
@@ -68,7 +68,7 @@ class TestHealth:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
-        assert data["service"] in ("getchum", "rideshare")
+        assert data["service"] in ("watan", "rideshare", "getchum")
         print("✓ Health check passed")
 
 

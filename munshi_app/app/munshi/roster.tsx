@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { munshiTheme } from '../../src/lib/theme';
+import { api } from '../../src/lib/api';
 
 export interface MobileEnrolledDriver {
   id: string;
@@ -127,7 +128,7 @@ export default function RosterScreen() {
     Alert.alert('✓ ڈرائیور خارج کر دیا گیا', `${target.name} (${target.vehiclePlate}) کا اڈہ معاہدہ ختم کر دیا گیا۔`);
   };
 
-  const handleEnrollNewDriver = () => {
+  const handleEnrollNewDriver = async () => {
     if (!newName.trim() || !newPlate.trim()) {
       Alert.alert('نامکمل معلومات', 'براہ کرم ڈرائیور کا نام اور گاڑی کا نمبر درج کریں۔');
       return;
@@ -146,6 +147,18 @@ export default function RosterScreen() {
       registeredDate: 'Today',
       totalTrips: 0,
     };
+
+    try {
+      await api(`/addas/adda_pwd_01/enroll-driver`, {
+        method: 'POST',
+        body: {
+          adda_id: 'adda_pwd_01',
+          driver_identifier: newPhone.trim() || newPlate.trim(),
+        },
+      });
+    } catch (err) {
+      console.log('Enroll API fallback to local:', err);
+    }
 
     setDrivers([newDriver, ...drivers]);
     setShowEnrollModal(false);

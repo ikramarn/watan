@@ -37,14 +37,14 @@ async def find_matching_drivers(ride: Dict[str, Any], limit: int = 10) -> List[D
         if active:
             continue
 
-        # Enforce Fife Council Statutory Hard Expiry Block
+        # Enforce Pakistan Transport Authority & Traffic Police Regulatory Compliance
         user = await db.users.find_one({"id": driver_id})
         if not user:
             continue
         kyc = await db.driver_kyc.find_one({"driver_id": driver_id})
         is_compliant, reason, _ = verify_driver_compliance(user, kyc)
         if not is_compliant:
-            logger.warning("Driver %s excluded from dispatch due to Fife compliance block: %s", driver_id, reason)
+            logger.warning("Driver %s excluded from dispatch due to regulatory compliance block: %s", driver_id, reason)
             continue
 
         d_vehicle_type = user.get("vehicle_type", "economy") if user else "economy"

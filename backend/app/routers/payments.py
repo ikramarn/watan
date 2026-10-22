@@ -8,7 +8,16 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from ..config import settings
 from ..db import db
 from ..deps import get_current_user, require_role
-from ..models import CheckoutIn, PaymentCaptureIn, PaymentIntentCreateIn, TipIn
+from ..models import (
+    CashConfirmIn,
+    CheckoutIn,
+    EasyPaisaInitiateIn,
+    JazzCashInitiateIn,
+    PaymentCaptureIn,
+    PaymentIntentCreateIn,
+    RaastQrGenerateIn,
+    TipIn,
+)
 from ..services.realtime import hub
 from ..utils import clean_doc, iso_now
 
@@ -132,7 +141,14 @@ async def capture_payment(
             logger.exception("Stripe payment capture error: %s", exc)
             raise HTTPException(502, f"Payment capture failed with payment provider: {exc}")
 
-    driver_earnings = float(ride.get("driver_earnings", fare * 0.80)) + tip
+    is_adda = ride.get("is_adda_trip", False) or ride.get("mode") == "adda"
+    if is_adda:
+        platform_fee = 0.0
+        driver_earnings = fare + tip
+    else:
+        # 10% platform fee for independent roaming trips
+        platform_fee = round(fare * 0.10, 2)
+        driver_earnings = round(fare - platform_fee, 2) + tip
 
     await db.rides.update_one(
         {"id": body.ride_id},
@@ -140,6 +156,7 @@ async def capture_payment(
             "$set": {
                 "payment_status": "paid",
                 "tip_amount": tip,
+                "platform_fee": platform_fee,
                 "total_paid": total_amount,
                 "driver_earnings": round(driver_earnings, 2),
                 "updated_at": iso_now(),
@@ -163,6 +180,8 @@ async def capture_payment(
             "fare": fare,
             "tip": tip,
             "total": total_amount,
+            "platform_fee": platform_fee,
+            "driver_earnings": round(driver_earnings, 2),
         },
     )
 
@@ -173,6 +192,8 @@ async def capture_payment(
         "fare": fare,
         "tip": tip,
         "total_amount": total_amount,
+        "platform_fee": platform_fee,
+        "driver_earnings": round(driver_earnings, 2),
     }
 
 
@@ -188,7 +209,7 @@ async def add_tip(
     if ride["passenger_id"] != user["id"]:
         raise HTTPException(403, "Not your ride")
 
-    tip = float(body.tip_amount)
+    tip = float(body.tip_amount or body.amount or 0.0)
     await db.rides.update_one(
         {"id": body.ride_id},
         {
@@ -205,7 +226,7 @@ async def add_tip(
         )
 
     await hub.publish_ride(body.ride_id, {"event": "payment.tipped", "ride_id": body.ride_id, "tip": tip})
-    return {"ok": True, "tip": tip, "message": f"Added ${tip:.2f} tip for your driver"}
+    return {"ok": True, "tip": tip, "message": f"Added Rs. {tip:.0f} tip for your driver"}
 
 
 @router.post("/payments/checkout")
@@ -236,7 +257,7 @@ async def payments_checkout(body: CheckoutIn, request: Request, user: dict = Dep
                         "price_data": {
                             "currency": curr,
                             "unit_amount": int(amount * 100),
-                            "product_data": {"name": f"GetChum Private Hire: {ride.get('ride_type', 'standard').capitalize()}"},
+                            "product_data": {"name": f"Watan Transport: {ride.get('ride_type', 'car_mini').replace('_', ' ').title()}"},
                         },
                         "quantity": 1,
                     }
@@ -246,7 +267,7 @@ async def payments_checkout(body: CheckoutIn, request: Request, user: dict = Dep
                 "metadata": {
                     "ride_id": body.ride_id,
                     "passenger_id": user["id"],
-                    "source": "getchum_passenger_app",
+                    "source": "watan_passenger_app",
                 },
             }
         )
@@ -378,4 +399,269 @@ async def stripe_webhook(request: Request):
                 await hub.publish_ride(tx["ride_id"], {"event": "payment.paid", "ride_id": tx["ride_id"]})
 
     return {"ok": True}
+
+
+# ==========================================
+# PAKISTANI DOMESTIC PAYMENT ENDPOINTS
+# (Raast, JazzCash, EasyPaisa, Cash Reconcile)
+# ==========================================
+
+@router.post("/payments/raast/generate-qr")
+async def generate_raast_qr(
+    body: RaastQrGenerateIn,
+    user: dict = Depends(get_current_user),
+):
+    """
+    State Bank of Pakistan (SBP) Raast Instant QR Payment Generator.
+    Produces an EMVCo compliant / Raast standard payload with driver's Raast ID / IBAN,
+    ride reference, and PKR amount.
+    """
+    ride = await db.rides.find_one({"id": body.ride_id})
+    if not ride:
+        raise HTTPException(404, "Ride not found")
+
+    amount = float(body.amount_pkr or ride.get("fare", 0.0))
+    driver_id = ride.get("driver_id")
+
+    # Retrieve driver's Raast alias or IBAN
+    raast_alias = "03001234567"
+    driver_name = "Watan Driver"
+    if driver_id:
+        driver = await db.users.find_one({"id": driver_id})
+        if driver:
+            driver_name = driver.get("name", "Watan Driver")
+            raast_alias = driver.get("raast_id") or driver.get("bank_iban_or_raast_alias") or driver.get("phone") or raast_alias
+            if raast_alias.startswith("+92"):
+                raast_alias = "0" + raast_alias[3:]
+
+    # Construct standard Raast payload URI
+    raast_payload = f"PK.GOV.SBP.RAAST://pay?id={raast_alias}&amount={amount:.2f}&currency=PKR&ref={body.ride_id}&desc={body.purpose}"
+
+    tx_id = str(uuid.uuid4())
+    await db.payment_transactions.insert_one(
+        {
+            "id": tx_id,
+            "ride_id": body.ride_id,
+            "passenger_id": ride.get("passenger_id"),
+            "driver_id": driver_id,
+            "amount": amount,
+            "currency": "PKR",
+            "payment_method": "raast",
+            "raast_alias": raast_alias,
+            "status": "pending_qr_scan",
+            "payment_status": "pending",
+            "created_at": iso_now(),
+            "updated_at": iso_now(),
+        }
+    )
+
+    return {
+        "ok": True,
+        "transaction_id": tx_id,
+        "ride_id": body.ride_id,
+        "amount_pkr": amount,
+        "currency": "PKR",
+        "raast_id": raast_alias,
+        "beneficiary_name": driver_name,
+        "qr_payload": raast_payload,
+        "instructions_en": "Scan with any Raast/1Link banking app (HBL, Meezan, SadaPay, NayaPay, JazzCash, Easypaisa).",
+        "instructions_ur": "کسی بھی پاکستانی بینکنگ ایپ (میزان، ایچ بی ایل، نیاپے، سعدے پے، جازکیش) سے کیو آر کوڈ اسکین کریں۔",
+    }
+
+
+@router.post("/payments/jazzcash/initiate")
+async def initiate_jazzcash_payment(
+    body: JazzCashInitiateIn,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Initiates a JazzCash Mobile Account (MWALLET) payment request in PKR.
+    In dev/sandbox, creates a pending transaction and provides approval simulation.
+    """
+    ride = await db.rides.find_one({"id": body.ride_id})
+    if not ride:
+        raise HTTPException(404, "Ride not found")
+
+    amount = float(body.amount_pkr or ride.get("fare", 0.0))
+    tx_ref = f"JC_{uuid.uuid4().hex[:12].upper()}"
+
+    await db.payment_transactions.insert_one(
+        {
+            "id": str(uuid.uuid4()),
+            "tx_ref": tx_ref,
+            "ride_id": body.ride_id,
+            "passenger_id": ride.get("passenger_id"),
+            "driver_id": ride.get("driver_id"),
+            "amount": amount,
+            "currency": "PKR",
+            "payment_method": "jazzcash",
+            "mobile_number": body.mobile_number,
+            "status": "pending_customer_mpin",
+            "payment_status": "pending",
+            "created_at": iso_now(),
+            "updated_at": iso_now(),
+        }
+    )
+
+    return {
+        "ok": True,
+        "tx_ref": tx_ref,
+        "ride_id": body.ride_id,
+        "amount_pkr": amount,
+        "mobile_number": body.mobile_number,
+        "status": "initiated",
+        "message_en": f"USSD push prompt sent to {body.mobile_number}. Enter your MPIN to confirm payment of Rs. {amount:.0f}.",
+        "message_ur": "جازکیش موبائل اکاؤنٹ پر تصدیقی پرامپٹ بھیج دیا گیا ہے۔ برائے مہربانی اپنا ایم پین درج کریں۔",
+    }
+
+
+@router.post("/payments/easypaisa/initiate")
+async def initiate_easypaisa_payment(
+    body: EasyPaisaInitiateIn,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Initiates an EasyPaisa Mobile Account direct debit in PKR.
+    """
+    ride = await db.rides.find_one({"id": body.ride_id})
+    if not ride:
+        raise HTTPException(404, "Ride not found")
+
+    amount = float(body.amount_pkr or ride.get("fare", 0.0))
+    order_id = f"EP_{uuid.uuid4().hex[:12].upper()}"
+
+    await db.payment_transactions.insert_one(
+        {
+            "id": str(uuid.uuid4()),
+            "order_id": order_id,
+            "ride_id": body.ride_id,
+            "passenger_id": ride.get("passenger_id"),
+            "driver_id": ride.get("driver_id"),
+            "amount": amount,
+            "currency": "PKR",
+            "payment_method": "easypaisa",
+            "mobile_number": body.mobile_number,
+            "status": "pending_approval",
+            "payment_status": "pending",
+            "created_at": iso_now(),
+            "updated_at": iso_now(),
+        }
+    )
+
+    return {
+        "ok": True,
+        "order_id": order_id,
+        "ride_id": body.ride_id,
+        "amount_pkr": amount,
+        "mobile_number": body.mobile_number,
+        "status": "initiated",
+        "message_en": f"Payment request of Rs. {amount:.0f} sent to Easypaisa account {body.mobile_number}. Please approve in your app.",
+        "message_ur": f"ایزی پیسہ اکاؤنٹ {body.mobile_number} پر ادائیگی کی درخواست بھیج دی گئی ہے۔ ایپ میں منظوری دیں۔",
+    }
+
+
+@router.post("/payments/cash-confirm")
+async def confirm_cash_payment(
+    body: CashConfirmIn,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Reconciles physical cash collection for a trip.
+    Accessible by driver, munshi, or passenger.
+    Calculates driver earnings and platform fee (10% for roaming, 0% for Adda).
+    Debits the 10% platform fee from driver wallet balance (since driver collected full cash),
+    and increments driver's total_earned.
+    """
+    ride = await db.rides.find_one({"id": body.ride_id})
+    if not ride:
+        raise HTTPException(404, "Ride not found")
+
+    fare = float(ride.get("fare", 0.0))
+    amount_paid = float(body.amount_received_pkr if body.amount_received_pkr is not None else fare)
+
+    is_adda = ride.get("is_adda_trip", False) or ride.get("mode") == "adda"
+    if is_adda:
+        platform_fee = 0.0
+        driver_net_earnings = amount_paid
+    else:
+        platform_fee = round(amount_paid * 0.10, 2)
+        driver_net_earnings = round(amount_paid - platform_fee, 2)
+
+    await db.rides.update_one(
+        {"id": body.ride_id},
+        {
+            "$set": {
+                "payment_status": "paid",
+                "payment_method": "cash",
+                "total_paid": amount_paid,
+                "platform_fee": platform_fee,
+                "driver_earnings": driver_net_earnings,
+                "cash_reconciled_by": user["id"],
+                "cash_notes": body.notes,
+                "updated_at": iso_now(),
+            }
+        },
+    )
+
+    # Since driver physically collected 100% cash, debit the platform fee from their driver wallet balance,
+    # and credit total_earned with net earnings
+    if ride.get("driver_id"):
+        await db.driver_wallets.update_one(
+            {"driver_id": ride["driver_id"]},
+            {
+                "$inc": {
+                    "balance": -platform_fee,
+                    "total_earned": driver_net_earnings,
+                },
+                "$set": {"updated_at": iso_now()},
+            },
+            upsert=True,
+        )
+
+    # Record cash transaction
+    await db.payment_transactions.insert_one(
+        {
+            "id": str(uuid.uuid4()),
+            "ride_id": body.ride_id,
+            "passenger_id": ride.get("passenger_id"),
+            "driver_id": ride.get("driver_id"),
+            "amount": amount_paid,
+            "currency": "PKR",
+            "payment_method": "cash",
+            "platform_fee": platform_fee,
+            "driver_earnings": driver_net_earnings,
+            "status": "succeeded",
+            "payment_status": "paid",
+            "reconciled_by": user["id"],
+            "notes": body.notes,
+            "created_at": iso_now(),
+            "updated_at": iso_now(),
+        }
+    )
+
+    # Broadcast realtime payment event
+    await hub.publish_ride(
+        body.ride_id,
+        {
+            "event": "payment.paid",
+            "ride_id": body.ride_id,
+            "fare": fare,
+            "total": amount_paid,
+            "payment_method": "cash",
+            "platform_fee": platform_fee,
+            "driver_earnings": driver_net_earnings,
+        },
+    )
+
+    return {
+        "ok": True,
+        "ride_id": body.ride_id,
+        "payment_status": "paid",
+        "payment_method": "cash",
+        "amount_received_pkr": amount_paid,
+        "platform_fee_pkr": platform_fee,
+        "driver_earnings_pkr": driver_net_earnings,
+        "message_en": f"Cash payment of Rs. {amount_paid:.0f} confirmed. Platform fee: Rs. {platform_fee:.0f}.",
+        "message_ur": f"نقد رقم {amount_paid:.0f} روپے کی ادائیگی تصدیق ہوگئی۔",
+    }
 

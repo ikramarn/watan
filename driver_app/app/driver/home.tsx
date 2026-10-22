@@ -11,7 +11,7 @@ import MapView from '../../src/components/MapView';
 import Button from '../../src/components/Button';
 import { getTheme } from '../../src/lib/theme';
 import { useAuth } from '../../src/lib/auth';
-import { api, getToken } from '../../src/lib/api';
+import { api, getToken, getWsBaseUrl } from '../../src/lib/api';
 
 const DEFAULT_POS = { lat: 33.6007, lng: 73.0679 }; // Rawalpindi / Islamabad Saddar
 
@@ -81,46 +81,83 @@ export default function DriverHome() {
     return () => clearInterval(timer);
   }, [isAddaRegistered, activeMode]);
 
-  // Simulated Incoming Ride Request for Independent Driver
+  // Connect to real-time Driver Dispatch WebSocket & Listen for Dispatches
   useEffect(() => {
-    if (!isOnline || activeTrip || activeMode === 'adda') {
-      setIncoming(null);
-      return;
-    }
+    if (!user?.id || !isOnline) return;
+    let ws: WebSocket | null = null;
+    let isCancelled = false;
 
-    // Trigger incoming ride simulation after 4 seconds of being online
-    const timeout = setTimeout(() => {
-      setIncoming({
-        id: `ride-${Date.now()}`,
-        passenger_name: 'Ayesha Bibi (عائشہ بی بی)',
-        passenger_rating: 4.9,
-        pickup_address: 'Commercial Market, Satellite Town',
-        dropoff_address: 'Saddar Metro Station, Mall Road',
-        distance_km: 5.4,
-        est_minutes: 14,
-        gross_fare: 380,
-        platform_fee: 38, // 10% Watan fee
-        driver_net: 342,
-        vehicle_type: 'Auto Rickshaw / Mini Car',
-      });
-      setCountdown(15);
-    }, 4000);
+    const connectWs = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const wsBase = await getWsBaseUrl();
+        ws = new WebSocket(`${wsBase}/ws/driver/${user.id}?token=${encodeURIComponent(token)}`);
 
-    return () => clearTimeout(timeout);
-  }, [isOnline, activeTrip, activeMode]);
+        ws.onopen = () => {
+          api('/driver/status', {
+            method: 'POST',
+            body: { online: true, lat: pos.lat, lng: pos.lng, bearing, active_mode: activeMode },
+          }).catch(() => {});
+        };
 
-  // Incoming request countdown
+        ws.onmessage = (event) => {
+          if (isCancelled) return;
+          try {
+            const data = JSON.parse(event.data);
+            if (data.event === 'driver.incoming' && data.ride) {
+              const r = data.ride;
+              setIncoming({
+                id: r.id,
+                passenger_name: r.passenger_name || 'Passenger',
+                passenger_rating: r.passenger_rating || 4.9,
+                pickup_address: r.pickup?.address || 'Pickup Point',
+                dropoff_address: r.destination?.address || 'Destination',
+                distance_km: r.distance_km || 5.0,
+                est_minutes: r.duration_min || 15,
+                gross_fare: r.fare || 380,
+                platform_fee: r.platform_fee || Math.round((r.fare || 380) * 0.10),
+                driver_net: r.driver_earnings || Math.round((r.fare || 380) * 0.90),
+                vehicle_type: r.ride_type || 'car_mini',
+              });
+              setCountdown(15);
+            } else if (data.event === 'ride.cancelled') {
+              if (activeTrip?.id === data.ride_id) {
+                setActiveTrip(null);
+                Alert.alert('Ride Cancelled (سواری منسوخ)', 'Passenger cancelled this ride request.');
+              }
+            }
+          } catch {}
+        };
+      } catch (err) {
+        console.warn('Driver WS error:', err);
+      }
+    };
+
+    connectWs();
+    return () => {
+      isCancelled = true;
+      ws?.close();
+    };
+  }, [user?.id, isOnline, activeMode]);
+
+  // Load driver earnings from backend on mount
   useEffect(() => {
-    if (!incoming) return;
-    if (countdown <= 0) {
-      setIncoming(null);
-      return;
-    }
-    const timer = setInterval(() => {
-      setCountdown((c) => c - 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [incoming, countdown]);
+    (async () => {
+      try {
+        const data = await api('/driver/earnings');
+        if (data) {
+          setEarnings({
+            today: data.today_net || 0,
+            total: data.total_net || 0,
+            week: data.week_net || 0,
+            today_trips: data.today_count || 0,
+            available_balance: data.today_net || 0,
+          });
+        }
+      } catch {}
+    })();
+  }, []);
 
   // Real or Simulated GPS Position
   useEffect(() => {
@@ -136,8 +173,15 @@ export default function DriverHome() {
           sub = await Location.watchPositionAsync(
             { accuracy: Location.Accuracy.High, distanceInterval: 10 },
             (newLoc) => {
-              setPos({ lat: newLoc.coords.latitude, lng: newLoc.coords.longitude });
+              const newPos = { lat: newLoc.coords.latitude, lng: newLoc.coords.longitude };
+              setPos(newPos);
               if (newLoc.coords.heading) setBearing(newLoc.coords.heading);
+              if (isOnline) {
+                api('/driver/location', {
+                  method: 'POST',
+                  body: { lat: newPos.lat, lng: newPos.lng, bearing: newLoc.coords.heading || 0 },
+                }).catch(() => {});
+              }
             }
           );
         }
@@ -146,17 +190,23 @@ export default function DriverHome() {
       }
     })();
     return () => { sub?.remove(); };
-  }, []);
+  }, [isOnline]);
 
   // Accept incoming independent ride
-  const handleAcceptRide = () => {
+  const handleAcceptRide = async () => {
     if (!incoming) return;
-    setActiveTrip(incoming);
+    const rideToAccept = incoming;
+    try {
+      await api(`/rides/${rideToAccept.id}/accept`, { method: 'POST' });
+    } catch (e: any) {
+      console.warn('Backend accept note:', e);
+    }
+    setActiveTrip(rideToAccept);
     setTripStep('pickup');
     setIncoming(null);
     Alert.alert(
       'Ride Accepted (سواری قبول کر لی گئی)',
-      `Navigate to ${incoming.pickup_address}. Pickup passenger: ${incoming.passenger_name}`
+      `Navigate to ${rideToAccept.pickup_address}. Pickup passenger: ${rideToAccept.passenger_name}`
     );
   };
 
@@ -166,7 +216,14 @@ export default function DriverHome() {
   };
 
   // Advance Trip Lifecycle
-  const handleArriveAtPickup = () => {
+  const handleArriveAtPickup = async () => {
+    if (activeTrip?.id) {
+      try {
+        await api(`/rides/${activeTrip.id}/arrived`, { method: 'POST' });
+      } catch (e: any) {
+        console.warn('Backend arrived note:', e);
+      }
+    }
     setTripStep('dropoff');
     Alert.alert(
       'Arrived at Pickup (پک اپ پہنچ گئے)',
@@ -174,15 +231,34 @@ export default function DriverHome() {
     );
   };
 
-  const handleCompleteTrip = () => {
-    const earned = activeTrip.driver_net;
-    setEarnings((prev: any) => ({
-      ...prev,
-      today: prev.today + earned,
-      today_trips: prev.today_trips + 1,
-      available_balance: prev.available_balance + earned,
-    }));
-    const fareMsg = `Rs. ${activeTrip.gross_fare} cash collected. Your net profit: Rs. ${earned} (10% Watan fee Rs. ${activeTrip.platform_fee} deducted from float).`;
+  const handleCompleteTrip = async () => {
+    const earned = activeTrip.driver_net || 342;
+    if (activeTrip?.id) {
+      try {
+        await api(`/rides/${activeTrip.id}/complete`, { method: 'POST' });
+      } catch (e: any) {
+        console.warn('Backend complete note:', e);
+      }
+    }
+    try {
+      const data = await api('/driver/earnings');
+      if (data) {
+        setEarnings((prev: any) => ({
+          ...prev,
+          today: data.today_net || (prev.today + earned),
+          today_trips: data.today_count || (prev.today_trips + 1),
+          total: data.total_net || (prev.total + earned),
+        }));
+      }
+    } catch {
+      setEarnings((prev: any) => ({
+        ...prev,
+        today: prev.today + earned,
+        today_trips: prev.today_trips + 1,
+        available_balance: prev.available_balance + earned,
+      }));
+    }
+    const fareMsg = `Rs. ${activeTrip.gross_fare || 380} cash collected. Your net profit: Rs. ${earned} (10% Watan fee Rs. ${activeTrip.platform_fee || 38} deducted from float).`;
     setActiveTrip(null);
     Alert.alert('Trip Completed! (سفر مکمل ہو گیا)', fareMsg);
   };

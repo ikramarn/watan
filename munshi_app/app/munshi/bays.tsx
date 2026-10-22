@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { munshiTheme } from '../../src/lib/theme';
+import { api } from '../../src/lib/api';
 
 interface BayData {
   id: string;
@@ -29,6 +30,7 @@ interface BayData {
 
 export default function BaysScreen() {
   const theme = munshiTheme;
+  const currentAddaId = 'adda_pwd_01';
 
   const [bays, setBays] = useState<BayData[]>([
     {
@@ -78,6 +80,35 @@ export default function BaysScreen() {
     },
   ]);
 
+  useEffect(() => {
+    async function fetchLiveBays() {
+      try {
+        const queue = await api<any[]>(`/addas/${currentAddaId}/pari`);
+        if (queue && queue.length > 0) {
+          const mapped: BayData[] = queue.map((item, idx) => ({
+            id: item.id || `pari_${idx}`,
+            bayNumber: item.bay_number || idx + 1,
+            corridor: item.corridor_name || 'Twin Cities Corridor',
+            urduCorridor: item.corridor_urdu || 'جڑواں شہر روٹ',
+            vehiclePlate: item.vehicle_plate || 'ICT-22-1001',
+            driverName: item.driver_name || 'Watan Driver',
+            driverPhone: item.driver_phone || '0300-0000000',
+            vehicleType: item.vehicle_type || 'Wagon (14-S)',
+            seatsBooked: item.booked_seats_count || 0,
+            totalSeats: item.total_seats || 14,
+            farePerSeat: item.fare_per_seat || 450,
+            status: item.status === 'departed' ? 'departed' : item.booked_seats_count >= item.total_seats ? 'full' : 'loading',
+            departureTime: item.scheduled_departure || 'In Bay',
+          }));
+          setBays(mapped);
+        }
+      } catch (err) {
+        // Safe fallback to defaults if offline or adda not yet seeded
+      }
+    }
+    fetchLiveBays();
+  }, []);
+
   const [departuresCount, setDeparturesCount] = useState<number>(38);
   const [waitingQueue, setWaitingQueue] = useState([
     {
@@ -107,7 +138,12 @@ export default function BaysScreen() {
         {
           text: 'روانہ کریں (Dispatch)',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            try {
+              await api(`/addas/${currentAddaId}/pari/${bay.id}/depart`, { method: 'POST' });
+            } catch (err) {
+              console.log('Depart API fallback to local:', err);
+            }
             setDeparturesCount((prev) => prev + 1);
             setBays((prev) =>
               prev.map((b) =>

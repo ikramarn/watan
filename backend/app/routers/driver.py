@@ -27,7 +27,7 @@ async def submit_driver_kyc(body: DriverKycSubmitIn, user: dict = Depends(requir
         "driver_id": user["id"],
         "license_number": body.license_number,
         "license_expiry": body.license_expiry,
-        "council_name": body.council_name or "Fife Council",
+        "council_name": body.council_name or "Regional Transport Authority (RTA)",
         "operator_license_number": body.operator_license_number or "",
         "operator_license_expiry": body.operator_license_expiry or "",
         "phv_badge_number": body.phv_badge_number or "",
@@ -51,7 +51,7 @@ async def submit_driver_kyc(body: DriverKycSubmitIn, user: dict = Depends(requir
         {
             "$set": {
                 "kyc_status": "pending",
-                "council_name": body.council_name or "Fife Council",
+                "council_name": body.council_name or "Regional Transport Authority (RTA)",
                 "operator_license_number": body.operator_license_number or "",
                 "phv_badge_number": body.phv_badge_number or "",
                 "badge_expiry": body.badge_expiry or "",
@@ -66,7 +66,7 @@ async def submit_driver_kyc(body: DriverKycSubmitIn, user: dict = Depends(requir
         },
     )
     await hub.publish_dispatch({"event": "kyc.submitted", "driver_id": user["id"], "name": user["name"]})
-    return {"ok": True, "status": "pending", "message": "KYC & Fife Statutory Documents submitted for review"}
+    return {"ok": True, "status": "pending", "message": "KYC & Pakistan Transport Regulatory Documents submitted for review"}
 
 
 @router.get("/driver/kyc")
@@ -82,7 +82,7 @@ async def get_driver_kyc(user: dict = Depends(require_role("driver"))):
 
 @router.post("/driver/status")
 async def driver_status(body: DriverStatusIn, user: dict = Depends(require_role("driver"))):
-    # Enforce Fife Council Statutory Hard Expiry Block before allowing driver to go online
+    # Enforce Pakistan Transport Authority & Traffic Police Compliance Block before allowing driver to go online
     if body.online:
         user_doc = await db.users.find_one({"id": user["id"]})
         kyc_doc = await db.driver_kyc.find_one({"driver_id": user["id"]})
@@ -90,7 +90,7 @@ async def driver_status(body: DriverStatusIn, user: dict = Depends(require_role(
         if not is_compliant:
             raise HTTPException(
                 status_code=403,
-                detail=f"Compliance Hard Stop (Fife Council): Cannot go online. {reason}. Please update your statutory documents in the driver portal."
+                detail=f"Compliance Hard Stop (Transport Authority / Traffic Police): Cannot go online. {reason}. Please update your statutory documents in the driver portal."
             )
 
     prev_doc = await db.driver_status.find_one({"driver_id": user["id"]})
@@ -497,7 +497,7 @@ async def no_show_ride(ride_id: str, user: dict = Depends(require_role("driver")
                 send_push_notification(
                     p_token,
                     "Ride Cancelled: Passenger No-Show",
-                    "Your driver waited outside over 5 minutes. A £5.00 cancellation fee has been applied.",
+                    "Your driver waited outside over 5 minutes. A Rs. 150 cancellation fee has been applied.",
                     data={"ride_id": ride_id, "type": "ride_cancelled", "reason": "no_show"},
                 )
             )
@@ -515,10 +515,14 @@ async def complete_ride(ride_id: str, user: dict = Depends(require_role("driver"
     fare = float(ride.get("fare", 0.0))
     driver_earnings = ride.get("driver_earnings")
     if driver_earnings is None:
-        driver_earnings = round(fare * 0.80, 2)
+        is_adda_trip = ride.get("is_adda_trip", False)
+        commission_rate = 0.0 if is_adda_trip else 0.10
+        platform_fee = round(fare * commission_rate, 2)
+        driver_earnings = round(fare - platform_fee, 2)
+    else:
+        platform_fee = round(fare - driver_earnings, 2)
 
-    payment_method = ride.get("payment_method", "card")
-    platform_fee = round(fare - driver_earnings, 2)
+    payment_method = ride.get("payment_method", "cash")
     now = iso_now()
 
     res = await db.rides.update_one(

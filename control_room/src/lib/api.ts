@@ -149,10 +149,9 @@ export async function apiRequest<T = unknown>(
 }
 
 /**
- * Downloads the official Fife Council statutory booking audit log in CSV format.
- * Complies with the Civic Government (Scotland) Act 1982 for licensing inspections.
+ * Downloads the official Regional Transport Authority (RTA) / Punjab Transport statutory booking audit log in CSV format.
  */
-export async function downloadFifeAuditCsv(start?: string, end?: string): Promise<void> {
+export async function downloadTransportAuditCsv(start?: string, end?: string): Promise<void> {
   const token = getAccessToken()
   const params = new URLSearchParams()
   if (start) params.set('start', start)
@@ -174,9 +173,12 @@ export async function downloadFifeAuditCsv(start?: string, end?: string): Promis
   const a = document.createElement('a')
   a.href = downloadUrl
   const today = new Date().toISOString().split('T')[0]
-  a.download = `fife_council_statutory_audit_${today}.csv`
+  a.download = `watan_transport_authority_audit_${today}.csv`
   document.body.appendChild(a)
   a.click()
   a.remove()
   window.URL.revokeObjectURL(downloadUrl)
 }
+
+export const downloadFifeAuditCsv = downloadTransportAuditCsv
+

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Starting GetChum Production Deployment..."
+echo "🚀 Starting Watan Production Deployment (وطن)..."
 
 # 1. Ensure Docker is installed
 if ! [ -x "$(command -v docker)" ]; then
@@ -29,6 +29,6 @@ docker compose -f docker-compose.prod.yml down --remove-orphans || true
 docker compose -f docker-compose.prod.yml build --no-cache api
 docker compose -f docker-compose.prod.yml up -d
 
-echo "✅ GetChum Production Stack is LIVE!"
+echo "✅ Watan Production Stack is LIVE!"
 echo "👉 API & WebSockets: http://localhost:8000"
 echo "👉 Health check: http://localhost:8000/docs"

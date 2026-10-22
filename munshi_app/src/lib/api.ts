@@ -21,16 +21,29 @@ export async function api<T = any>(
     headers['Authorization'] = `Bearer ${t}`;
   }
 
-  const res = await fetch(`${BASE}${path.startsWith('/') ? path : '/' + path}`, {
+  const normalizedPath = path.startsWith('/api')
+    ? path
+    : `/api${path.startsWith('/') ? path : '/' + path}`;
+
+  const res = await fetch(`${BASE}${normalizedPath}`, {
     method: opts.method || (opts.body ? 'POST' : 'GET'),
     headers,
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(errorText || `API error ${res.status}`);
+  const text = await res.text();
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
   }
 
-  return res.json();
+  if (!res.ok) {
+    const detail = (data && data.detail) || res.statusText;
+    const msg = typeof detail === 'string' ? detail : JSON.stringify(detail);
+    throw new Error(msg || `API error ${res.status}`);
+  }
+
+  return data as T;
 }

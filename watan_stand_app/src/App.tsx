@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
+const API_BASE = (import.meta as any).env?.VITE_BACKEND_URL || "http://localhost:8000";
+
 declare global {
   interface Window {
     L: any;
@@ -357,7 +359,7 @@ export default function App() {
     }
   };
 
-  const handleIssueCounterTicket = () => {
+  const handleIssueCounterTicket = async () => {
     if (selectedSeats.length === 0) {
       setAlertMessage("Please select at least 1 seat to issue ticket.");
       return;
@@ -378,6 +380,30 @@ export default function App() {
       paidMode: "Cash at Stand",
       time: new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Karachi" }).slice(0, 5) + " PKT",
     };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/seats/counter-ticket`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          adda_id: "adda_pwd_01",
+          corridor_id: activeBay.corridor.toLowerCase().includes("lahore") ? "rpl_lahore" : "rpl_peshawar",
+          bay_number: activeBay.bayNumber,
+          seat_numbers: selectedSeats,
+          fare_per_seat_pkr: activeBay.farePerSeat,
+          cash_tendered_pkr: tendered,
+          passenger_name: passengerName.trim() || "Walk-in Passenger",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.ticket_code) {
+          newTicket.code = data.ticket_code;
+        }
+      }
+    } catch (err) {
+      console.log("Counter ticket backend fallback:", err);
+    }
 
     // Update bay booked seats
     setBays((prev) =>
@@ -400,9 +426,38 @@ export default function App() {
     setAlertMessage(`Ticket ${newTicket.code} issued successfully! Printed to 58mm thermal POS.`);
   };
 
-  const handleValidateQr = (e: React.FormEvent) => {
+  const handleValidateQr = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!qrInput.trim()) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/seats/validate-ticket`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticket_code_or_qr: qrInput.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.ticket) {
+          setValidatedBooking({
+            code: data.ticket.ticket_code,
+            passenger: data.ticket.passenger_name || "Passenger",
+            phone: data.ticket.passenger_phone || "+92 300 1234567",
+            bay: data.ticket.bay_number || 2,
+            corridor: data.ticket.corridor_name || data.ticket.corridor_id || "Watan Stand Corridor",
+            seats: data.ticket.seat_numbers,
+            totalFare: data.ticket.total_fare_pkr,
+            paymentMode: data.ticket.payment_method || "Paid",
+            status: data.ticket.status === "validated" ? "Already Used" : "Verified & Cleared to Board",
+          });
+          setAlertMessage(`Reservation ${data.ticket.ticket_code} verified! Seat(s): ${data.ticket.seat_numbers.join(", ")}`);
+          setQrInput("");
+          return;
+        }
+      }
+    } catch (err) {
+      console.log("Ticket validation backend fallback:", err);
+    }
 
     const mockReservation = {
       code: qrInput.toUpperCase(),
@@ -421,9 +476,17 @@ export default function App() {
     setQrInput("");
   };
 
-  const handleDepartBay = (bayNumber: number) => {
+  const handleDepartBay = async (bayNumber: number) => {
     const bayToDepart = bays.find((b) => b.bayNumber === bayNumber);
     if (!bayToDepart) return;
+
+    try {
+      await fetch(`${API_BASE}/api/addas/adda_pwd_01/pari/${bayToDepart.id}/depart`, {
+        method: "POST",
+      });
+    } catch (err) {
+      console.log("Depart API backend fallback:", err);
+    }
 
     setDeparturesCount((prev) => prev + 1);
     setAlertMessage(`Vehicle ${bayToDepart.vehiclePlate} has departed Stand Bay #${bayNumber}. Gate exit parchi printed.`);

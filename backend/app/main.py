@@ -132,22 +132,21 @@ async def seed_demo_accounts() -> None:
             doc["vehicle_plate"] = demo["vehicle_plate"]
             doc["vehicle_type"] = demo["vehicle_type"]
             doc["kyc_status"] = "verified"
-            doc["council_name"] = "Fife Council"
-            doc["phv_badge_number"] = "FC-PHD-8821"
-            doc["badge_expiry"] = "2028-12-31"
-            doc["insurance_policy"] = "Aviva Hire & Reward #AV-99120"
+            doc["council_name"] = "Regional Transport Authority (RTA)"
+            doc["license_number"] = "RTA-DL-88219"
+            doc["license_expiry"] = "2028-12-31"
+            doc["insurance_policy"] = "State Life Commercial TPL #PK-99120"
             doc["insurance_expiry"] = "2028-12-31"
             doc["plate_expiry"] = "2028-12-31"
-            doc["license_number"] = "LEE880199J99"
-            doc["license_expiry"] = "2028-12-31"
+            doc["cnic"] = "37405-1829101-1"
             await db.driver_status.update_one(
                 {"driver_id": user_id},
                 {
                     "$set": {
                         "driver_id": user_id,
                         "online": False,
-                        "lat": 37.7749,
-                        "lng": -122.4194,
+                        "lat": 33.6007,
+                        "lng": 73.0679,
                         "updated_at": iso_now(),
                     }
                 },
@@ -155,21 +154,18 @@ async def seed_demo_accounts() -> None:
             )
         await db.users.insert_one(doc)
 
-    # Ensure any existing driver@demo.com is marked verified with valid Fife compliance dates
+    # Ensure any existing driver@demo.com is marked verified with valid compliance dates
     await db.users.update_one(
         {"email": "driver@demo.com"},
         {
             "$set": {
                 "kyc_status": "verified",
-                "council_name": "Fife Council",
-                "phv_badge_number": "FC-PHD-8821",
-                "badge_expiry": "2028-12-31",
-                "insurance_policy": "Aviva Hire & Reward #AV-99120",
-                "insurance_expiry": "2028-12-31",
-                "vehicle_plate": "SK19 FFC",
-                "plate_expiry": "2028-12-31",
-                "license_number": "LEE880199J99",
+                "council_name": "Regional Transport Authority (RTA)",
+                "license_number": "RTA-DL-88219",
                 "license_expiry": "2028-12-31",
+                "vehicle_plate": "RPL-4921",
+                "plate_expiry": "2028-12-31",
+                "cnic": "37405-1829101-1",
             }
         },
     )
@@ -197,30 +193,30 @@ async def delete_account_page():
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Delete Your GetChum Account</title>
+  <title>Delete Your Watan Account (اکاؤنٹ ڈیلیٹ)</title>
   <style>
     body { font-family: -apple-system, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; color: #1a1a1a; }
     h1 { font-size: 28px; margin-bottom: 12px; }
     p { font-size: 16px; line-height: 1.6; color: #444; }
     .steps { background: #f5f5f5; border-radius: 12px; padding: 20px; margin: 24px 0; }
     .steps li { margin: 8px 0; font-size: 15px; }
-    a { color: #FACC15; }
+    a { color: #006837; }
   </style>
 </head>
 <body>
-  <h1>Delete Your GetChum Account</h1>
-  <p>You can permanently delete your GetChum account and all associated data directly from the app.</p>
+  <h1>Delete Your Watan Account</h1>
+  <p>You can permanently delete your Watan (وطن) account and all associated data directly from the app.</p>
   <div class="steps">
     <strong>Steps:</strong>
     <ol>
-      <li>Open the <strong>GetChum</strong> app on your device</li>
+      <li>Open the <strong>Watan</strong> app on your device</li>
       <li>Tap the <strong>Profile</strong> tab</li>
       <li>Scroll down and tap <strong>Delete Account</strong></li>
       <li>Confirm the deletion when prompted</li>
     </ol>
   </div>
   <p>Deleting your account will permanently remove your profile, ride history, and all personal data from our servers. This action cannot be undone.</p>
-  <p>Alternatively, email us at <a href="mailto:support@getchum.co.uk">support@getchum.co.uk</a> to request manual deletion.</p>
+  <p>Alternatively, email us at <a href="mailto:support@watan.pk">support@watan.pk</a> to request manual deletion.</p>
 </body>
 </html>"""
 

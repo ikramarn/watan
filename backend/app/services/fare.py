@@ -107,22 +107,22 @@ ADDA_DRIVER_COMMISSION_RATE = 0.00
 def calculate_surge_multiplier(active_requests_in_zone: int, available_drivers_in_zone: int) -> float:
     """
     Dynamic surge pricing based on local Pakistani traffic and peak demand hours.
-    Returns a multiplier from 1.0x (standard) up to 2.2x (peak rain/rush hour).
+    Returns a multiplier from 1.0x (standard) up to 2.5x (peak rain/rush hour).
     """
     if available_drivers_in_zone <= 0:
-        return 1.6 if active_requests_in_zone > 0 else 1.0
+        return 1.8 if active_requests_in_zone > 0 else 1.0
 
     ratio = active_requests_in_zone / float(available_drivers_in_zone)
     if ratio <= 1.0:
         return 1.0
     elif ratio <= 1.5:
-        return 1.15
-    elif ratio <= 2.5:
-        return 1.35
-    elif ratio <= 4.0:
-        return 1.6
+        return 1.2
+    elif ratio <= 2.0:
+        return 1.5
+    elif ratio <= 3.5:
+        return 1.8
     else:
-        return 2.0
+        return 2.5
 
 
 def estimate_fare(
@@ -152,14 +152,39 @@ def estimate_fare(
     }
 
 
-def compute_fare(distance_km: float, ride_type: str = "car_mini") -> Dict[str, Any]:
-    """Helper for deterministic test compatibility."""
-    duration_min = distance_km * 2.0
-    est = estimate_fare(distance_km, duration_min, ride_type)
+def compute_fare(
+    distance_km: float,
+    ride_type: str = "car_mini",
+    duration_min: Optional[float] = None,
+    surge_multiplier: float = 1.0,
+    tips: float = 0.0,
+    is_adda_trip: bool = False,
+) -> Dict[str, Any]:
+    """
+    Deterministic fare computation returning fare, breakdown, driver split, and details.
+    Compatible with rides.py, unit tests, and multi-modal bookings.
+    """
+    if duration_min is None or duration_min <= 0:
+        duration_min = max(2.0, distance_km * 2.0)
+
+    est = estimate_fare(distance_km, duration_min, ride_type, surge=surge_multiplier)
+    fare = est["estimated_fare"]
+
+    commission_rate = ADDA_DRIVER_COMMISSION_RATE if is_adda_trip else INDEPENDENT_COMMISSION_RATE
+    platform_fee = round(fare * commission_rate, 2)
+    driver_earnings = round((fare - platform_fee) + tips, 2)
+    total_amount = round(fare + tips, 2)
+
     return {
-        "fare": est["estimated_fare"],
+        "fare": fare,
         "currency": CURRENCY,
+        "currency_symbol": CURRENCY_SYMBOL,
         "ride_type": ride_type,
+        "surge_multiplier": surge_multiplier,
+        "tips": tips,
+        "total_amount": total_amount,
+        "platform_fee": platform_fee,
+        "driver_earnings": driver_earnings,
         "details": est,
     }
 

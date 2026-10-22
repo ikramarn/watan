@@ -1,5 +1,5 @@
 """
-Transactional Email Service for GetChum.
+Transactional Email Service for Watan Pakistan (وطن).
 Supports Resend API and SendGrid API with fallback development simulation.
 """
 
@@ -24,7 +24,7 @@ async def send_email(
     Send an email via Resend or SendGrid API based on configured settings.
     If no API key is configured, logs the email for development/testing.
     """
-    from_email = settings.email_from or "GetChum <noreply@getchum.co.uk>"
+    from_email = settings.email_from or "Watan Pakistan <noreply@watan.pk>"
     to_clean = to_email.strip().lower()
 
     # 1. Try Resend API if API key is present
@@ -45,7 +45,7 @@ async def send_email(
                 headers={
                     "Authorization": f"Bearer {settings.resend_api_key}",
                     "Content-Type": "application/json",
-                    "User-Agent": "GetChum-Backend/1.0",
+                    "User-Agent": "Watan-Backend/2.0",
                 },
                 method="POST",
             )
@@ -64,7 +64,7 @@ async def send_email(
         try:
             payload = {
                 "personalizations": [{"to": [{"email": to_clean}]}],
-                "from": {"email": from_email.split("<")[-1].replace(">", "").strip() or "noreply@getchum.co.uk", "name": "GetChum"},
+                "from": {"email": from_email.split("<")[-1].replace(">", "").strip() or "noreply@watan.pk", "name": "Watan Pakistan"},
                 "subject": subject,
                 "content": [{"type": "text/html", "value": html_content}],
             }
@@ -74,7 +74,7 @@ async def send_email(
                 headers={
                     "Authorization": f"Bearer {settings.sendgrid_api_key}",
                     "Content-Type": "application/json",
-                    "User-Agent": "GetChum-Backend/1.0",
+                    "User-Agent": "Watan-Backend/2.0",
                 },
                 method="POST",
             )
@@ -103,38 +103,38 @@ async def send_verification_otp_email(to_email: str, name: str, code: str) -> bo
     Sends a branded 6-digit verification code email for account registration and login.
     """
     first_name = name.split()[0] if name else "there"
-    subject = f"{code} is your GetChum verification code"
+    subject = f"{code} is your Watan verification code"
     
     html = f"""<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Your GetChum Verification Code</title>
+  <title>Your Watan Verification Code</title>
   <style>
-    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #0f172a; }}
-    .card {{ max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }}
-    .logo {{ font-size: 24px; font-weight: 800; color: #2563eb; letter-spacing: -0.5px; margin-bottom: 24px; }}
-    .title {{ font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }}
-    .text {{ font-size: 15px; color: #475569; line-height: 22px; margin-bottom: 24px; }}
-    .code-box {{ background: #f1f5f9; border-radius: 12px; padding: 18px; text-align: center; letter-spacing: 8px; font-size: 32px; font-weight: 800; color: #1e293b; margin: 24px 0; font-family: monospace; border: 1px solid #cbd5e1; }}
-    .footer {{ font-size: 12px; color: #94a3b8; text-align: center; margin-top: 32px; border-top: 1px solid #f1f5f9; padding-top: 16px; }}
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b1118; margin: 0; padding: 24px; color: #f8fafc; }}
+    .card {{ max-width: 480px; margin: 0 auto; background: #131c26; border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid #1f2d3d; }}
+    .logo {{ font-size: 24px; font-weight: 800; color: #10b981; letter-spacing: -0.5px; margin-bottom: 24px; }}
+    .title {{ font-size: 20px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }}
+    .text {{ font-size: 15px; color: #94a3b8; line-height: 22px; margin-bottom: 24px; }}
+    .code-box {{ background: #0b1118; border-radius: 12px; padding: 18px; text-align: center; letter-spacing: 8px; font-size: 32px; font-weight: 800; color: #10b981; margin: 24px 0; font-family: monospace; border: 1px solid #10b981; }}
+    .footer {{ font-size: 12px; color: #64748b; text-align: center; margin-top: 32px; border-top: 1px solid #1f2d3d; padding-top: 16px; }}
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">GetChum</div>
+    <div class="logo">Watan (وطن)</div>
     <div class="title">Verify your email address</div>
-    <div class="text">Hi {first_name}, welcome to GetChum! Use the 6-digit code below to verify your account:</div>
+    <div class="text">Hi {first_name}, welcome to Watan Pakistan! Use the 6-digit code below to verify your account:</div>
     <div class="code-box">{code}</div>
     <div class="text" style="font-size: 13px; color: #64748b;">
       This code will expire in <strong>10 minutes</strong>. If you didn't request this code, you can safely ignore this email.
     </div>
     <div class="footer">
-      GetChum Fife Taxi & Cabs • Licensed Private Hire & Taxi Services
+      Watan Pakistan (وطن) • National Multi-Modal Mobility & Adda Transport Network
     </div>
   </div>
 </body>
 </html>"""
 
-    text = f"Hi {first_name},\n\nYour GetChum verification code is: {code}\n\nThis code will expire in 10 minutes.\n\nGetChum Fife Taxi & Cabs"
+    text = f"Hi {first_name},\n\nYour Watan verification code is: {code}\n\nThis code will expire in 10 minutes.\n\nWatan Pakistan (وطن)"
     return await send_email(to_email, subject, html, text)

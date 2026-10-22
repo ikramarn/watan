@@ -118,3 +118,36 @@ def test_pydantic_pakistan_models_validation():
         lng=73.0489,
     )
     assert mode.mode == "adda"
+
+
+def test_pakistan_phone_normalization():
+    from app.services.sms import normalize_pakistan_phone
+    assert normalize_pakistan_phone("03001234567") == "+923001234567"
+    assert normalize_pakistan_phone("0321-9876543") == "+923219876543"
+    assert normalize_pakistan_phone("00923331122334") == "+923331122334"
+    assert normalize_pakistan_phone("923455566778") == "+923455566778"
+    assert normalize_pakistan_phone("+923001122334") == "+923001122334"
+
+
+@pytest.mark.anyio
+async def test_pakistan_sms_otp_dispatch():
+    from app.services.sms import send_verification_otp_sms
+    res = await send_verification_otp_sms("03001234567", "584920")
+    assert res is True
+
+
+def test_pakistani_payment_models():
+    from app.models import RaastQrGenerateIn, JazzCashInitiateIn, EasyPaisaInitiateIn, CashConfirmIn
+    
+    raast = RaastQrGenerateIn(ride_id="ride_test_01", amount_pkr=450.0)
+    assert raast.amount_pkr == 450.0
+    assert raast.purpose == "Watan Ride Fare"
+
+    jc = JazzCashInitiateIn(ride_id="ride_test_01", mobile_number="03001234567", cnic_last_6="123456")
+    assert jc.mobile_number == "03001234567"
+
+    ep = EasyPaisaInitiateIn(ride_id="ride_test_01", mobile_number="03451234567")
+    assert ep.mobile_number == "03451234567"
+
+    cash = CashConfirmIn(ride_id="ride_test_01", amount_received_pkr=500.0, notes="Paid exact cash")
+    assert cash.amount_received_pkr == 500.0

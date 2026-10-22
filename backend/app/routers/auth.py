@@ -30,6 +30,7 @@ from ..security import (
     verify_password,
 )
 from ..services.email import send_verification_otp_email
+from ..services.sms import send_verification_otp_sms
 from ..utils import clean_doc, iso_now, now_utc
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -157,7 +158,7 @@ async def google_auth(body: GoogleAuthIn):
     # Verify ID token with Google's tokeninfo API
     try:
         url = f"https://oauth2.googleapis.com/tokeninfo?id_token={token}"
-        req = urllib.request.Request(url, headers={"User-Agent": "GetChum-Backend/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "Watan-Backend/2.0"})
         with urllib.request.urlopen(req, timeout=5) as response:
             if response.status == 200:
                 google_user_info = json.loads(response.read().decode("utf-8"))
@@ -165,8 +166,8 @@ async def google_auth(body: GoogleAuthIn):
         logger.warning("Google token verification failed: %s", exc)
 
     # In non-production testing, allow simulated tokens for automated tests
-    if not google_user_info and settings.env != "production" and token.startswith("test_google_token_"):
-        test_email = token.replace("test_google_token_", "") + "@example.com"
+    if not google_user_info and settings.env != "production" and (token.startswith("test_google_token_") or token.startswith("test_apple_token_")):
+        test_email = (token.replace("test_google_token_", "").replace("test_apple_token_", "")) + "@example.com"
         google_user_info = {
             "sub": f"google_test_{token}",
             "email": test_email,
@@ -294,6 +295,12 @@ async def request_phone_otp(body: PhoneOtpRequestIn, user: dict = Depends(get_cu
         },
         upsert=True,
     )
+
+    # Fire SMS send via Telecom SMS Gateway
+    try:
+        await send_verification_otp_sms(clean_phone, otp_code)
+    except Exception as exc:
+        logger.error("Failed to send SMS to %s: %s", clean_phone, exc)
 
     resp = {
         "ok": True,

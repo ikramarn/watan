@@ -29,6 +29,15 @@ async def estimate(body: RideEstimateIn, user: Optional[dict] = Depends(get_opti
     pending_rides_count = await db.rides.count_documents({"status": "pending"})
     surge = calculate_surge_multiplier(pending_rides_count, online_drivers_count)
 
+    multimodal_types = [
+        "bike",
+        "rickshaw",
+        "qingqi",
+        "car_mini",
+        "car_comfort",
+        "wagon",
+        "coaster",
+    ]
     options = [
         compute_fare(
             distance_km=distance_km,
@@ -36,7 +45,7 @@ async def estimate(body: RideEstimateIn, user: Optional[dict] = Depends(get_opti
             duration_min=duration_min,
             surge_multiplier=surge,
         )
-        for t in ["economy", "premium", "xl"]
+        for t in multimodal_types
     ]
 
     return {

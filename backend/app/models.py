@@ -282,8 +282,37 @@ class PaymentIntentCreateIn(BaseModel):
 class PaymentCaptureIn(BaseModel):
     ride_id: str = Field(min_length=6, max_length=80)
     payment_intent_id: Optional[str] = None
+    tip_amount: Optional[float] = Field(default=0.0, ge=0)
 
 
 class TipIn(BaseModel):
-    amount: float = Field(ge=0)
+    ride_id: str = Field(min_length=6, max_length=80)
+    tip_amount: float = Field(default=0.0, ge=0)
+    amount: Optional[float] = None
+
+
+class RaastQrGenerateIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    amount_pkr: Optional[float] = Field(default=None, gt=0)
+    purpose: Optional[str] = Field(default="Watan Ride Fare", max_length=100)
+
+
+class JazzCashInitiateIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    mobile_number: str = Field(min_length=10, max_length=15)
+    cnic_last_6: Optional[str] = Field(default="", max_length=6)
+    amount_pkr: Optional[float] = Field(default=None, gt=0)
+
+
+class EasyPaisaInitiateIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    mobile_number: str = Field(min_length=10, max_length=15)
+    email: Optional[str] = Field(default="", max_length=80)
+    amount_pkr: Optional[float] = Field(default=None, gt=0)
+
+
+class CashConfirmIn(BaseModel):
+    ride_id: str = Field(min_length=6, max_length=80)
+    amount_received_pkr: Optional[float] = Field(default=None, gt=0)
+    notes: Optional[str] = Field(default="", max_length=200)
 

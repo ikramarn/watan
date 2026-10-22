@@ -55,14 +55,14 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow GetChum to show your location and nearby local drivers on the map."
+          "locationWhenInUsePermission": "Allow Watan to show your location and nearby transport, cabs, and Addas across Pakistan."
         }
       ],
       [
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#FACC15",
+          "color": "#006837",
           "defaultChannel": "default"
         }
       ],

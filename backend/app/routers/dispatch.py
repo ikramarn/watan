@@ -252,7 +252,7 @@ async def list_online_drivers(
                 "plate_expiry": comp_details.get("plate_expiry", ""),
                 "license_number": comp_details.get("license_number", ""),
                 "license_expiry": comp_details.get("license_expiry", ""),
-                "council_name": comp_details.get("council_name", "Fife Council"),
+                "council_name": comp_details.get("council_name", "Regional Transport Authority (RTA)"),
                 "created_at": user.get("created_at", ""),
             }
         )
@@ -291,7 +291,7 @@ async def list_online_drivers(
                     "plate_expiry": comp_details.get("plate_expiry", ""),
                     "license_number": comp_details.get("license_number", ""),
                     "license_expiry": comp_details.get("license_expiry", ""),
-                    "council_name": comp_details.get("council_name", "Fife Council"),
+                    "council_name": comp_details.get("council_name", "Regional Transport Authority (RTA)"),
                     "created_at": user.get("created_at", ""),
                 }
             )
@@ -1085,14 +1085,14 @@ async def export_fife_statutory_audit(
         "Destination Address",
         "Destination Coordinates",
         "Assigned Driver Full Name",
-        "Fife Council / Local Authority Badge Number",
+        "Transport Authority / Traffic Police Permit",
         "Licensing Authority",
         "Vehicle Compliance Plate / Registration",
         "Vehicle Make & Model",
         "Vehicle Color",
-        "Gross Fare (£)",
-        "Platform Fee (£)",
-        "Driver Net Earnings (£)",
+        "Gross Fare (PKR)",
+        "Platform Fee (PKR)",
+        "Driver Net Earnings (PKR)",
         "Trip Status",
         "Assignment Method",
         "Booking Created At",
@@ -1116,7 +1116,7 @@ async def export_fife_statutory_audit(
             dest_coords,
             r.get("driver_name", "Unassigned"),
             r.get("phv_badge_number", "N/A"),
-            r.get("council_name", "Fife Council"),
+            r.get("council_name", "Regional Transport Authority (RTA)"),
             r.get("vehicle_plate", "N/A"),
             r.get("vehicle_make", ""),
             r.get("vehicle_color", ""),
@@ -1130,7 +1130,7 @@ async def export_fife_statutory_audit(
         ])
 
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    filename = f"fife_council_statutory_audit_{today_str}.csv"
+    filename = f"watan_transport_authority_audit_{today_str}.csv"
     
     return Response(
         content=csv_stream.getvalue(),

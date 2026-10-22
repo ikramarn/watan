@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://api.getchum.co.uk';
+const BASE = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export async function getToken(): Promise<string | null> {
   return AsyncStorage.getItem('rs_token');

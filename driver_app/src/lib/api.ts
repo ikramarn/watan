@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://api.getchum.co.uk';
+const BASE = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 // Persist backend URL for background location task (TaskManager runs in separate context)
 AsyncStorage.setItem('rs_backend_url', BASE).catch(() => {});

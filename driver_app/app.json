@@ -62,7 +62,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow GetChum Driver to share your live GPS location for ride navigation and passenger tracking.",
+          "locationAlwaysAndWhenInUsePermission": "Allow Watan Driver to share your live GPS location for ride navigation, passenger tracking, and Adda stand queues.",
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
@@ -72,7 +72,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#FACC15",
+          "color": "#006837",
           "defaultChannel": "default"
         }
       ],

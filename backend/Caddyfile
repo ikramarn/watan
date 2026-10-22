@@ -1,25 +1,31 @@
-# Production Caddyfile for GetChum (getchum.co.uk)
-
+# Production Caddyfile for Watan Pakistan (watan.pk)
 # 1. API & Realtime WebSockets Gateway
-api.getchum.co.uk {
+api.watan.pk {
     reverse_proxy api:8000
 }
 
-# 2. Chum Dispatch · Control Room Web App
-admin.getchum.co.uk {
+# 2. Watan Dispatch · Control Room Web App
+admin.watan.pk {
     root * /srv/control_room
     file_server
     try_files {path} /index.html
 }
 
-# 3. Main Customer Domain: GetChum Passenger Web Booking & Portal
-getchum.co.uk, www.getchum.co.uk {
+# 3. Watan Stand / Adda POS Web App
+stand.watan.pk {
+    root * /srv/stand_app
+    file_server
+    try_files {path} /index.html
+}
+
+# 4. Main Customer Domain: Watan Passenger Web Booking & Portal
+watan.pk, www.watan.pk {
     root * /srv/passenger_web
     file_server
     try_files {path} /index.html
 }
 
-# 4. Direct IP Fallback
+# 5. Direct IP Fallback
 :80 {
     reverse_proxy api:8000
 }

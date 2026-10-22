@@ -202,7 +202,7 @@ export function DashboardShell() {
           <div className="brand-logo-icon">🚖</div>
           <div>
             <div className="brand-title">
-              GetChum <span style={{ color: 'var(--primary)' }}>Dispatch</span>
+              Watan <span style={{ color: 'var(--primary)' }}>Dispatch (وطن)</span>
             </div>
             <div
               style={{
@@ -224,7 +224,7 @@ export function DashboardShell() {
                   boxShadow: '0 0 8px #10b981',
                 }}
               />
-              Fife & Edinburgh Fleet Cockpit
+              Pakistan National Fleet & Adda Cockpit
             </div>
           </div>
         </div>
